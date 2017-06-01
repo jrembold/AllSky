@@ -1,6 +1,6 @@
 #===================================================
 #
-# File Name: shared2.py
+# File Name: shared.py
 # 
 # Purpose: To give a shared globals module 
 #
