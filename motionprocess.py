@@ -6,7 +6,7 @@
 #
 # Creation Date: 16-01-2017
 #
-# Last Modified: Tue 30 May 2017 03:38:01 PM PDT
+# Last Modified: Wed 31 May 2017 05:21:12 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -168,7 +168,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
             cv2.putText(B, date_str + " UTC", (10, B.shape[0]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, 255)
 
             # The Hough Transform
-            lines = cv2.HoughLinesP( accum_thresh, 4, np.pi/30, 20, 10, 3 )
+            lines = cv2.HoughLinesP( accum_thresh, shared.DETECT.LENGTH, shared.DETECT.ANGLES, shared.DETECT.THRESHOLD, shared.DETECT.MINLINE, shared.DETECT.LINESKIP )
             # If we detect lines, draw a box around each one and initialize or perpetuate recording
             if lines is not None:
                 # for eachline in lines:
