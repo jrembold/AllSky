@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Mon 05 Jun 2017 04:34:16 PM PDT
+# Last Modified: Mon 05 Jun 2017 04:48:30 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -24,6 +24,7 @@ from KeyClipWriter import KeyClipWriter
 from datetime import datetime, timedelta
 from dateutil import parser
 import cv2
+import time
 
 def initializeVideo():
     kcw = KeyClipWriter()
