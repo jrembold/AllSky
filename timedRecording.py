@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Mon 05 Jun 2017 04:48:30 PM PDT
+# Last Modified: Mon 05 Jun 2017 04:54:44 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -70,12 +70,12 @@ def main():
 
     while not isTimeAfterEnd(args['end']):
         (grabbed, frame) = cam.read()
+        kcw.update(frame)
 
         if not kcw.recording:
             path = "{}/{}.avi".format(args['output'], datetime.now().strftime('%Y%m%d_%H%M%S'))
             kcw.start(path, cv2.VideoWriter_fourcc(*'FFV1'), 30)
 
-        kcw.update(frame)
 
     #All done! Shut things down!
     kcw.finish()
