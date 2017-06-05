@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Mon 05 Jun 2017 04:31:08 PM PDT
+# Last Modified: Mon 05 Jun 2017 04:34:16 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -21,7 +21,7 @@ flares) for finetuning of analysis and capture software.
 
 import argparse
 from KeyClipWriter import KeyClipWriter
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil import parser
 import cv2
 
@@ -45,6 +45,12 @@ def isTimeBeforeStart(starttime):
 def isTimeAfterEnd(endtime):
     end = parser.parse(endtime)
     return datetime.now() > end
+
+def printTimeRemaining(endtime):
+    end = parser.parse(endtime)
+    timeleft = end - datetime.now()
+    if int(timeleft) % 5:
+        print('Time left: {} seconds'.format(int(timeleft)))
 
 def main():
     ap = argparse.ArgumentParser()
@@ -72,8 +78,6 @@ def main():
 
     #All done! Shut things down!
     kcw.finish()
-
-    print(checkTimeInInterval(args['start'], args['end']))
 
 if __name__ == '__main__':
     main()
