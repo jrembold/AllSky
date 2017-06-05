@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Mon 05 Jun 2017 04:16:07 PM PDT
+# Last Modified: Mon 05 Jun 2017 04:31:08 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -50,6 +50,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('-s', '--start', help='Time and date to start recording')
     ap.add_argument('-e', '--end', help='Time and date to end recording')
+    ap.add_argument('-o', '--output', help='Path to save video to')
     args = vars(ap.parse_args())
 
     #Sleep until starting time, periodically checking time
@@ -60,8 +61,17 @@ def main():
     kcw, cam = initializeVideo()
     (grabbed, frame) = cam.read()
 
-    while grabbed:
-        kcw.upd
+    while not isTimeAfterEnd(args['end']):
+        (grabbed, frame) = cam.read()
+
+        if not kcw.recording:
+            path = "{}/{}.avi".format(args['output'], datetime.now().strftime('%Y%m%d_%H%M%S'))
+            kcw.start(path, cv2.VideoWriter_fourcc(*'FFV1'), 30)
+
+        kcw.update(frame)
+
+    #All done! Shut things down!
+    kcw.finish()
 
     print(checkTimeInInterval(args['start'], args['end']))
 
