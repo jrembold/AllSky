@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Mon 05 Jun 2017 04:54:44 PM PDT
+# Last Modified: Mon 05 Jun 2017 04:59:43 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -49,8 +49,8 @@ def isTimeAfterEnd(endtime):
 
 def printTimeRemaining(endtime):
     end = parser.parse(endtime)
-    timeleft = end - datetime.now()
-    if int(timeleft) % 5:
+    timeleft = (end - datetime.now()).total_seconds()
+    if not int(timeleft) % 5:
         print('Time left: {} seconds'.format(int(timeleft)))
 
 def main():
@@ -75,6 +75,8 @@ def main():
         if not kcw.recording:
             path = "{}/{}.avi".format(args['output'], datetime.now().strftime('%Y%m%d_%H%M%S'))
             kcw.start(path, cv2.VideoWriter_fourcc(*'FFV1'), 30)
+
+        printTimeRemaining(args['end'])
 
 
     #All done! Shut things down!
