@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Mon 05 Jun 2017 04:59:43 PM PDT
+# Last Modified: Mon 05 Jun 2017 05:08:07 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -51,7 +51,7 @@ def printTimeRemaining(endtime):
     end = parser.parse(endtime)
     timeleft = (end - datetime.now()).total_seconds()
     if not int(timeleft) % 5:
-        print('Time left: {} seconds'.format(int(timeleft)))
+        print('\rTime left: {} seconds'.format(int(timeleft)), end='', flush=True)
 
 def main():
     ap = argparse.ArgumentParser()
