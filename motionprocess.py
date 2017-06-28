@@ -6,7 +6,7 @@
 #
 # Creation Date: 16-01-2017
 #
-# Last Modified: Wed 31 May 2017 05:21:12 PM PDT
+# Last Modified: Wed 28 Jun 2017 04:19:42 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -88,6 +88,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
     kcw = KeyClipWriter(bufSize=buffsize)
     consecFrames = 0
     logging.info("New Observation Run Started")
+    logging.info("Detection params -- Length: {}, Threshold: {}, MinLine: {}, LineSkip: {}".format(shared.DETECT.LENGTH, shared.DETECT.THRESHOLD, shared.DETECT.MINLINE, shared.DETECT.LINESKIP))
     logging.info("Clips saved to {}".format(savepath))
 
     disk_full = False
