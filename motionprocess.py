@@ -6,7 +6,7 @@
 #
 # Creation Date: 16-01-2017
 #
-# Last Modified: Wed 28 Jun 2017 04:19:42 PM PDT
+# Last Modified: Wed 28 Jun 2017 04:25:58 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -30,6 +30,11 @@ import shared
 
 
 def takeSnapshot(path):
+    '''
+    Function to be run in a thread to take periodic snapshots of the
+    night sky. Mainly to serve as a confirmation for the sky state
+    at any particular hour of the night
+    '''
     while True:
         while (grabbed and shared.ANALYZE_ON):
             date_num = datetime.datetime.utcnow()
@@ -47,6 +52,9 @@ def takeSnapshot(path):
         time.sleep(10) #In analysis off, wait 10 minutes then check again
 
 def weightaccum( old_frame, new_frame, weight ):
+    ''' Function calculates an accumulated weighted average. This function
+    serves as a wrapper to the basic script to recast the arrays in the
+    needed datatype. '''
     # Recasting in float32 as accumulateWeighted requires this datatype
     old_frame = old_frame.astype(np.float32)
     new_frame = new_frame.astype(np.float32)
@@ -57,8 +65,8 @@ def weightaccum( old_frame, new_frame, weight ):
 
 
 def drawBoundingHough(frame, x1, x2, y1, y2 ):
-    # Drawing a red box around the hough transform line to help find in footage
-    # This is likely NOT WANTED for actual capture
+    ''' Function to draw a red box around all detected objects in a scene
+    '''
     size = 40
     midx = int((x2+x1)/2)
     midy = int((y2+y1)/2)
@@ -70,6 +78,11 @@ def drawBoundingHough(frame, x1, x2, y1, y2 ):
 
 
 def analyze(buffsize, savepath, headless, vpath=None ):
+    '''
+    This is the main analysis script. Reads in the data from the camera,
+    checks for objects, opens threads to save the data if an object is
+    found. '''
+
     global grabbed, gray
 
     # Saved video or live video?
