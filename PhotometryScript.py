@@ -55,7 +55,7 @@ def click(event, x, y, flags, param):
 
 ####################################
 # argument use in order to identify picture in command line
-# Open with "python /path/to/script.py --image /path/to/picture.jpg"
+# open with "python /path/to/script.py --image /path/to/picture.jpg"
 # only works with JPG as of now
 ####################################
 

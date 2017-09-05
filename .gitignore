@@ -1,4 +1,6 @@
 Observation_Log.txt
 
+*.swp
+
 ## Python Stuff! ##
 __pycache__/
