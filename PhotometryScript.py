@@ -28,29 +28,29 @@ def click(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         global ReferenceStarMag
         global ReferenceStarLoc
-        ReferenceStarMag = img[x,y]
-        ReferenceStarLoc = [x,y]
+        ReferenceStarMag = img[y,x]
+        ReferenceStarLoc = [y,x]
         return ReferenceStarMag, ReferenceStarLoc
 
     elif event == cv2.EVENT_LBUTTONUP:
         global ReferenceBackgroundMag
         global ReferenceBackgroundLoc
-        ReferenceBackgroundMag = img[x,y]
-        ReferenceBackgroundLoc = [x,y]
+        ReferenceBackgroundMag = img[y,x]
+        ReferenceBackgroundLoc = [y,x]
         return ReferenceBackgroundMag, ReferenceBackgroundLoc
 
     elif event == cv2.EVENT_RBUTTONDOWN:
         global ObjectMag
         global ObjectLoc
-        ObjectMag = img[x,y]
-        ObjectLoc = [x,y]
+        ObjectMag = img[y,x]
+        ObjectLoc = [y,x]
         return ObjectMag, ObjectLoc
     
     elif event == cv2.EVENT_RBUTTONUP:
         global ObjectBackgroundMag
         global ObjectBackgroundLoc
-        ObjectBackgroundMag = img[x,y]
-        ObjectBackgroundLoc = [x,y]
+        ObjectBackgroundMag = img[y,x]
+        ObjectBackgroundLoc = [y,x]
         return ObjectBackgroundMag, ObjectBackgroundLoc
 
 ####################################
