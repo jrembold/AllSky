@@ -21,7 +21,7 @@ import sympy as sp
 ####################################
 # Creating function for mouse click
 # Left Click is for Reference Star
-# Right Click is for Object
+# Right Click is for the Object
 ####################################
 
 def click(event, x, y, flags, param):
