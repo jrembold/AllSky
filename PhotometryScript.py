@@ -1,7 +1,7 @@
 #####################################
 #
 #
-# Identifying Objects and Their Magnitudes
+# Identifying Objects & Their Magnitudes
 # 
 # Luke Galbraith Russell
 #
@@ -13,10 +13,8 @@
 import numpy as np
 import cv2
 import argparse
-import sympy as sp
+import math
 
-#pixel = img[200,500]
-#print(pixel)
 
 ####################################
 # Creating function for mouse click
@@ -25,33 +23,30 @@ import sympy as sp
 ####################################
 
 def click(event, x, y, flags, param):
+    global ReferenceStarLoc
+    global ReferenceBackgroundMag
+    global ReferenceBackgroundLoc
+    global ObjectBackgroundMag
+    global ObjectBackgroundLoc
+    global ObjectLoc
+
     if event == cv2.EVENT_LBUTTONDOWN:
-        global ReferenceStarMag
-        global ReferenceStarLoc
-        ReferenceStarMag = img[y,x]
-        ReferenceStarLoc = [y,x]
-        return ReferenceStarMag, ReferenceStarLoc
+        ReferenceStarLoc = (x,y)
 
     elif event == cv2.EVENT_LBUTTONUP:
-        global ReferenceBackgroundMag
-        global ReferenceBackgroundLoc
         ReferenceBackgroundMag = img[y,x]
-        ReferenceBackgroundLoc = [y,x]
-        return ReferenceBackgroundMag, ReferenceBackgroundLoc
+        ReferenceBackgroundLoc = (x,y)
+        cv2.circle(img2, ReferenceStarLoc, int(math.sqrt((ReferenceStarLoc[0] - ReferenceBackgroundLoc[0])**2 + (ReferenceStarLoc[1] - ReferenceBackgroundLoc[1])**2)),100,5)
+        cv2.imshow("window", img2*10)
 
     elif event == cv2.EVENT_RBUTTONDOWN:
-        global ObjectMag
-        global ObjectLoc
-        ObjectMag = img[y,x]
-        ObjectLoc = [y,x]
-        return ObjectMag, ObjectLoc
+        ObjectLoc = (x,y)
     
     elif event == cv2.EVENT_RBUTTONUP:
-        global ObjectBackgroundMag
-        global ObjectBackgroundLoc
         ObjectBackgroundMag = img[y,x]
-        ObjectBackgroundLoc = [y,x]
-        return ObjectBackgroundMag, ObjectBackgroundLoc
+        ObjectBackgroundLoc = (x,y) 
+        cv2.circle(img2, ObjectLoc, int(math.sqrt((ObjectLoc[0] - ObjectBackgroundLoc[0])**2 + (ObjectLoc[1] - ObjectBackgroundLoc[1])**2)),99,5)
+        cv2.imshow("window", img2*10)
 
 ####################################
 # argument use in order to identify picture in command line
@@ -70,12 +65,13 @@ args= vars(ap.parse_args())
 # and ESC on the picture will exit it out
 ####################################
 
-img = cv2.imread(args["image"])
-clone=img.copy()
-img = cv2.cvtColor(clone, cv2.COLOR_BGR2GRAY)
+image = cv2.imread(args["image"])
+img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+img = cv2.resize(img,(0,0), fx=2, fy=2)
+img2 = img.copy()
 cv2.namedWindow("window")
 cv2.setMouseCallback("window", click)
-cv2.imshow("window", img)
+cv2.imshow("window", img*10)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
@@ -85,80 +81,35 @@ cv2.destroyAllWindows()
 # sum all the values of the square area selected
 ####################################
 
-#print(ReferenceStarLoc, ReferenceBackgroundLoc)
-ReferenceDistance = (np.absolute(np.subtract(ReferenceStarLoc, ReferenceBackgroundLoc)))
-ReferenceRadius = np.amax(ReferenceDistance)
-print('The radius of the reference star is', ReferenceRadius)
+def MagnitudeFinder(Loc, BackgroundMag, BackgroundLoc):
 
-ReferenceRange = np.arange(-ReferenceRadius,ReferenceRadius+1,1)
-XReferenceRange = ReferenceStarLoc[0] + ReferenceRange
-YReferenceRange = ReferenceStarLoc[1] + ReferenceRange
+    Distance = (np.absolute(np.subtract(Loc, BackgroundLoc)))
+    Radius = np.amax(Distance)
+    print('The radius of the reference star is', Radius)
 
-FullReferenceRange=[]
-for i in range(0,2*ReferenceRadius+1):
-    ColumnShape = []
-    ColumnValues = ((np.full((2*ReferenceRadius+1), YReferenceRange[i])))
-    ColumnShape  = np.column_stack((XReferenceRange,ColumnValues))
-    FullReferenceRange.append(ColumnShape)
+    Range=[]
+    for i in range(-Radius,Radius):
+        for j in range(-Radius,Radius):
+            if i**2 + j**2  <  Radius**2:
+                Range.append((i + Loc[0], j + Loc[1])[::-1])
+    print(Range)
+    MagValue = 0
+    for i in Range:
+        MagValue = MagValue + (img[i] - BackgroundMag)
+    print('The magnitude value is',MagValue)
+    return(MagValue)
 
-FullReferenceRange = np.array(np.concatenate((np.array(FullReferenceRange))))
-#FullestRange looks gross, but this was the only way to get it in one long 121 by 2 matrix
-#But yes, it is gross
+ReferenceMagValue = MagnitudeFinder(ReferenceStarLoc, ReferenceBackgroundMag, ReferenceBackgroundLoc)
 
-ReferenceMagValues = []
-for i in range(0,ReferenceRadius**2):
-    xVal = FullReferenceRange[i,0]
-    yVal = FullReferenceRange[i,1]
-    ReferencePixelValue=img[xVal,yVal]
-    ReferenceMagValues.append(ReferencePixelValue)
-
-ReferenceMagValues = (np.array(ReferenceMagValues)).astype(np.int16)
-ReferenceMagValues = (ReferenceMagValues - ReferenceBackgroundMag)
-ReferenceMagValues = ReferenceMagValues.clip(0)
-ReferenceMagValue = np.sum(ReferenceMagValues)
-print('The magnitude value of the reference star is',ReferenceMagValue)
-
-####################################
-#Same thing but for Object
-####################################
-
-ObjectDistance = (np.absolute(np.subtract(ObjectLoc, ObjectBackgroundLoc)))
-ObjectRadius = np.amax(ObjectDistance)
-print('The radius of the object is',ObjectRadius)
-
-ObjectRange = np.arange(-ObjectRadius,ObjectRadius+1,1)
-XObjectRange = ObjectLoc[0] + ObjectRange
-YObjectRange = ObjectLoc[1] + ObjectRange
-FullObjectRange=[]
-for i in range(0,2*ObjectRadius+1):
-    ColumnShape = []
-    ColumnValues = ((np.full((2*ObjectRadius+1), YObjectRange[i])))
-    ColumnShape  = np.column_stack((XObjectRange,ColumnValues))
-    FullObjectRange.append(ColumnShape)
-
-FullObjectRange = np.array(np.concatenate((np.array(FullObjectRange))))
-
-ObjectMagValues = []
-for i in range(0,ObjectRadius**2):
-    xVal = FullObjectRange[i,0]
-    yVal = FullObjectRange[i,1]
-    ObjectPixelValue=img[xVal,yVal]
-    ObjectMagValues.append(ObjectPixelValue)
-ObjectMagValues = (np.array(ObjectMagValues)).astype(np.int16)
-ObjectMagValues = (ObjectMagValues - ObjectBackgroundMag)
-ObjectMagValues = ObjectMagValues.clip(0)
-ObjectMagValue = np.sum(ObjectMagValues)
-print('The Magnitude Value of the object is',ObjectMagValue)
+ObjectMagValue = MagnitudeFinder(ObjectLoc, ObjectBackgroundMag, ObjectBackgroundLoc)
 
 ####################################
 #Photometry for finding the catalog value
 ####################################
-Exposure = 1
-
-InstrumentalMagnitude = -2.5*sp.log(ReferenceMagValue/Exposure)
+InstrumentalMagnitude = -2.5*np.log(ReferenceMagValue)
 CatalogMagnitude = float(input('Enter catalog magnitude: '))
 Offset = InstrumentalMagnitude - CatalogMagnitude 
 
-ObjectCatalogValue = -2.5*sp.log(ObjectMagValue/Exposure) - Offset
+ObjectCatalogValue = -2.5*np.log(ObjectMagValue) - Offset
 print('The catalog value of the object is *maybe*',  ObjectCatalogValue)
 
