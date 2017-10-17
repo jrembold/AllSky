@@ -42,7 +42,7 @@ def click(event, x, y, flags, param):
     elif event == cv2.EVENT_LBUTTONUP:
         ReferenceBackgroundMag = img[y,x]
         ReferenceBackgroundLoc = (x,y)
-        cv2.circle(img2, ReferenceStarLoc, int(math.sqrt((ReferenceStarLoc[0] - ReferenceBackgroundLoc[0])**2 + (ReferenceStarLoc[1] - ReferenceBackgroundLoc[1])**2)),100,2)
+        cv2.circle(img2, ReferenceStarLoc, int(math.sqrt((ReferenceStarLoc[0] - ReferenceBackgroundLoc[0])**2 + (ReferenceStarLoc[1] - ReferenceBackgroundLoc[1])**2)),100,1)
         cv2.imshow("window", img2*20)
 
     elif event == cv2.EVENT_RBUTTONDOWN:
@@ -53,9 +53,12 @@ def click(event, x, y, flags, param):
     elif event == cv2.EVENT_RBUTTONUP:
         ObjectBackgroundMag = img[y,x]
         ObjectBackgroundLoc = (x,y) 
-        cv2.circle(img2, ObjectLoc, int(math.sqrt((ObjectLoc[0] - ObjectBackgroundLoc[0])**2 + (ObjectLoc[1] - ObjectBackgroundLoc[1])**2)),99,2)
+        cv2.circle(img2, ObjectLoc, int(math.sqrt((ObjectLoc[0] - ObjectBackgroundLoc[0])**2 + (ObjectLoc[1] - ObjectBackgroundLoc[1])**2)),99,1)
         cv2.imshow("window", img2*20)
-
+print('Instructions')
+print('Reference Star = left click ||| Object = right click')
+print('Click on item. It does not need to be exact. Continue to hold and drag cursor to area of empty space next to item and release.')
+print('If circle does not satisfy what you were trying to do, feel free to repeat the previous instruction.')
 ####################################
 # argument use in order to identify picture in command line
 # open with "python /path/to/script.py --image /path/to/picture.jpg"
@@ -138,31 +141,16 @@ YpoptRef = FindingGaussian(YMaxLocRef, 'y', 'ReferenceStar')
 XpoptObj = FindingGaussian(XMaxLocObj, 'x', 'Object')
 YpoptObj = FindingGaussian(YMaxLocObj, 'y', 'Object')
 ##################################################
-# Subplots
-##################################################
-def PlottingCurve(XMaxLoc, YMaxLoc, Xpopt, Ypopt):
-    subf = img[-15+YMaxLoc:15+YMaxLoc,-15+XMaxLoc:15+XMaxLoc]
-    f, axarr = plt.subplots(2,2)
-    axarr[0,0].plot(np.arange(-15+XMaxLoc,15+XMaxLoc), np.array(gauss_function(np.arange(-15+XMaxLoc,15+XMaxLoc),*Xpopt)))
-    axarr[1,0].imshow(subf,cmap='gray')
-    axarr[0,1].axis('off')
-    axarr[1,1].plot((gauss_function(np.arange(-15+YMaxLoc,15+YMaxLoc),*Ypopt)),np.arange(-15+YMaxLoc,15+YMaxLoc))
-    plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
-    plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
-    plt.tight_layout()
-    plt.draw()
-
-PlottingCurve(XMaxLocRef, YMaxLocRef, XpoptRef, YpoptRef)
-PlottingCurve(XMaxLocObj, YMaxLocObj, XpoptObj, YpoptObj)
-##################################################
 # Magnitude Finder
 ##################################################
 
 def MagnitudeFinder(Loc, BackgroundMag, BackgroundLoc, Xpopt, Ypopt):
+    global ReferenceStarAvgRadius
+    global ObjectAvgRadius
+
     Distance = (np.absolute(np.subtract(Loc, BackgroundLoc)))
-    YRadius = int(np.ceil(4*Xpopt[2]))
-    XRadius = int(np.ceil(4*Ypopt[2]))
-    print('The average radius of the reference star is ',(XRadius**2 + YRadius**2)**.5)
+    YRadius = int(np.ceil(3*Xpopt[2]))
+    XRadius = int(np.ceil(3*Ypopt[2]))
 
     Range=[]
     for i in range(-XRadius,XRadius):
@@ -185,7 +173,15 @@ def MagnitudeFinder(Loc, BackgroundMag, BackgroundLoc, Xpopt, Ypopt):
     MagValue = 0
     for i in Range:
         MagValue = MagValue + (img[i] - AvgBackgroundMag)
-    print('The magnitude value is',MagValue)
+
+    
+    if Loc == ReferenceStarLoc:
+        print('The average radius of the reference star is ',(XRadius**2 + YRadius**2)**.5, 'and the magnitude is', MagValue)
+        ReferenceStarAvgRadius = (XRadius**2 + YRadius**2)**.5
+    if Loc == ObjectLoc:
+        print('The average radius of the object is', (XRadius**2 + YRadius**2)**.5, 'and the magnitude is', MagValue)
+        ObjectAvgRadius = (XRadius**2 + YRadius**2)**.5
+    
     return(MagValue)
 
 ReferenceMagValue = MagnitudeFinder(ReferenceStarLoc, ReferenceBackgroundMag, ReferenceBackgroundLoc, XpoptRef, YpoptRef)
@@ -201,4 +197,26 @@ Offset = InstrumentalMagnitude - CatalogMagnitude
 
 ObjectCatalogValue = -2.5*np.log10(ObjectMagValue) - Offset
 print('The catalog value of the object is *maybe*',  ObjectCatalogValue)
+
+
+
+##################################################
+# Subplots
+##################################################
+def PlottingCurve(XMaxLoc, YMaxLoc, Xpopt, Ypopt, Radius):
+    subf = img[-15+YMaxLoc:15+YMaxLoc,-15+XMaxLoc:15+XMaxLoc]
+    f, axarr = plt.subplots(2,2)
+    axarr[0,0].plot(np.arange(-15+XMaxLoc,15+XMaxLoc), np.array(gauss_function(np.arange(-15+XMaxLoc,15+XMaxLoc),*Xpopt)))
+    axarr[1,0].imshow(subf,cmap='gray')
+    axarr[1,0].add_artist(plt.Circle((15,15),Radius,color='cyan', alpha=0.2))
+    axarr[0,1].axis('off')
+    axarr[1,1].plot((gauss_function(np.arange(15+YMaxLoc,-15+YMaxLoc,-1),*Ypopt)),np.arange(15+YMaxLoc,-15+YMaxLoc,-1))
+    plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
+    plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
+    plt.tight_layout()
+    plt.draw()
+
+PlottingCurve(XMaxLocRef, YMaxLocRef, XpoptRef, YpoptRef, ReferenceStarAvgRadius)
+PlottingCurve(XMaxLocObj, YMaxLocObj, XpoptObj, YpoptObj, ObjectAvgRadius)
+
 plt.show()
