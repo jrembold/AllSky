@@ -1,4 +1,4 @@
-#####################################
+##################################################
 #
 #
 # Identifying Objects & Their Magnitudes
@@ -8,28 +8,29 @@
 # Willamette University
 #
 #
-#####################################
+##################################################
 
+import seaborn as sns
 import numpy as np
 import cv2
 import argparse
 import math
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-####################################
+import matplotlib.gridspec as gridspec
+
+##################################################
 # Creating function for mouse click
 # Left Click is for Reference Star
 # Right Click is for the Object
-####################################
+##################################################
 
 def click(event, x, y, flags, param):
     global ReferenceStarLoc
     global ReferenceStarX
     global ReferenceStarY
-    global ReferenceBackgroundMag
-    global ReferenceBackgroundLoc
-    global ObjectBackgroundMag
-    global ObjectBackgroundLoc
+    global ReferenceBackgroundRadius
+    global ObjectBackgroundRadius
     global ObjectLoc
     global ObjectX
     global ObjectY
@@ -43,6 +44,7 @@ def click(event, x, y, flags, param):
         ReferenceBackgroundMag = img[y,x]
         ReferenceBackgroundLoc = (x,y)
         cv2.circle(img2, ReferenceStarLoc, int(math.sqrt((ReferenceStarLoc[0] - ReferenceBackgroundLoc[0])**2 + (ReferenceStarLoc[1] - ReferenceBackgroundLoc[1])**2)),100,1)
+        ReferenceBackgroundRadius = int(math.sqrt((ReferenceStarLoc[0] - ReferenceBackgroundLoc[0])**2 + (ReferenceStarLoc[1] - ReferenceBackgroundLoc[1])**2)) 
         cv2.imshow("window", img2*20)
 
     elif event == cv2.EVENT_RBUTTONDOWN:
@@ -54,27 +56,34 @@ def click(event, x, y, flags, param):
         ObjectBackgroundMag = img[y,x]
         ObjectBackgroundLoc = (x,y) 
         cv2.circle(img2, ObjectLoc, int(math.sqrt((ObjectLoc[0] - ObjectBackgroundLoc[0])**2 + (ObjectLoc[1] - ObjectBackgroundLoc[1])**2)),99,1)
+        ObjectBackgroundRadius = int(math.sqrt((ObjectLoc[0] - ObjectBackgroundLoc[0])**2 + (ObjectLoc[1] - ObjectBackgroundLoc[1])**2))
         cv2.imshow("window", img2*20)
+
+##################################################
+# Instructions for user
+##################################################
+
 print('Instructions')
 print('Reference Star = left click ||| Object = right click')
 print('Click on item. It does not need to be exact. Continue to hold and drag cursor to area of empty space next to item and release.')
 print('If circle does not satisfy what you were trying to do, feel free to repeat the previous instruction.')
-####################################
+
+##################################################
 # argument use in order to identify picture in command line
 # open with "python /path/to/script.py --image /path/to/picture.jpg"
 # only works with JPG as of now
-####################################
+##################################################
 
 ap=argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required=True)
 args= vars(ap.parse_args())
 
-####################################
+##################################################
 # reading in the jpg, cloning a copy, and then converting that copy to grayscale
 # creating window for it to pop up in
 # activating mouse function from above
-# and ESC on the picture will exit it out
-####################################
+# and key press on the picture will exit it out
+##################################################
 
 image = cv2.imread(args["image"])
 img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -86,22 +95,32 @@ cv2.imshow("window", img2*20)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-####################################
-# This is a way to find the brightest area near the pixel you clicked
-# Take the distance to background in either direction, search grid for brightest point
-# sum all the values of the square area selected
-####################################
-def gauss_function(x, a, x0, sigma):
-    return a*np.exp(-(x-x0)**2/(2*sigma**2))
+##################################################
+# Gaussian
 
+# Gaussian Function for fitting light curves
+##################################################
+
+def Gaussian(x, a, x0, Sigma):
+    return a*np.exp(-(x-x0)**2/(2*Sigma**2))
+
+##################################################
+# Finding Max
+#
+# This function searches through a range of values
+# along each axis from the point you clicked
+# and it finds the max for the column and for the row
+# and thus centering any future data at the center 
+# as the center is the brightest
+##################################################
 
 def FindingMax(X,Y,choice):
     if choice == 'x':
-        SearchRange = np.arange(X-15,X+15)
+        SearchRange = np.arange(X-10,X+10)
     if choice == 'y':
-        SearchRange = np.arange(Y-15,Y+15)
+        SearchRange = np.arange(Y-10,Y+10)
     Coordinates = []
-    for i in np.arange(-15,15):
+    for i in np.arange(-10,10):
         if choice == 'x':
             Coordinates.append(img[Y, X+i])
         if choice == 'y':
@@ -112,58 +131,97 @@ def FindingMax(X,Y,choice):
 
     return(MaxLoc)
 
+##################################################
+# In order to center the x and y of both items
+# we call the FindingMax function for them
+# And this center we will use in the FindingGaussian function
+##################################################
+
 XMaxLocRef = FindingMax(ReferenceStarX, ReferenceStarY,'x')
 YMaxLocRef = FindingMax(ReferenceStarX, ReferenceStarY,'y')
 XMaxLocObj = FindingMax(ObjectX, ObjectY, 'x')
 YMaxLocObj = FindingMax(ObjectX, ObjectY, 'y')
 
+ReferenceStarLoc = (XMaxLocRef, YMaxLocRef)
+ObjectLoc = (XMaxLocObj, YMaxLocObj)
+##################################################
+# Finding Gaussian
+
+# Starting at the previously identified center,
+# We find the pixel values of a range around that center
+# and create a list of pixel values with the index values
+# We then say the max is the ampliteude, 
+# and guess the standard deviation
+# And we fit the data to the Gaussian function. 
+##################################################
+
 def FindingGaussian(MaxLoc,choice,selection):
+    global ObjectXPixels
+    global ObjectYPixels
+    global ReferenceXPixels
+    global ReferenceYPixels
+
     if selection == 'ReferenceStar':
         YMaxLoc = YMaxLocRef
         XMaxLoc = XMaxLocRef
     if selection == 'Object':
         YMaxLoc = YMaxLocObj
         XMaxLoc = XMaxLocObj
-    Range = np.arange(MaxLoc-15,MaxLoc+15)
+    Range = np.arange(MaxLoc-20,MaxLoc+20)
     Coordinates = []
-    for i in np.arange(-15,15):
+    for i in np.arange(-20,20):
         if choice == 'x':
             Coordinates.append(img[YMaxLoc, MaxLoc+i]) 
+            if selection == 'Object':
+                ObjectXPixels = np.array(Coordinates)
+            if selection == 'ReferenceStar':
+                ReferenceXPixels = np.array(Coordinates)
         if choice == 'y':
             Coordinates.append(img[MaxLoc+i, XMaxLoc])
-    mean = MaxLoc
-    sigma = 3
-    popt, pcov = curve_fit(gauss_function, Range, Coordinates, p0 = [np.max(Coordinates), mean, sigma])
-    return(popt)
+            if selection == 'Object':
+                ObjectYPixels = np.array(Coordinates)
+            if selection == 'ReferenceStar':
+                ReferenceYPixels = np.array(Coordinates) 
 
-XpoptRef = FindingGaussian(XMaxLocRef, 'x','ReferenceStar')
-YpoptRef = FindingGaussian(YMaxLocRef, 'y', 'ReferenceStar')
-XpoptObj = FindingGaussian(XMaxLocObj, 'x', 'Object')
-YpoptObj = FindingGaussian(YMaxLocObj, 'y', 'Object')
+    Mean = MaxLoc
+    Sigma = 3
+    FitParameters, pcov = curve_fit(Gaussian, Range, Coordinates, p0 = [np.max(Coordinates), Mean, Sigma])
+    return(FitParameters)
+
+##################################################
+# FitParameters contains the amplitude, standard deviation and mean
+# The standard deviation is needed later so we call this function 
+# for both axes for both items
+##################################################
+
+XFitParametersRef = FindingGaussian(XMaxLocRef, 'x','ReferenceStar')
+YFitParametersRef = FindingGaussian(YMaxLocRef, 'y', 'ReferenceStar')
+XFitParametersObj = FindingGaussian(XMaxLocObj, 'x', 'Object')
+YFitParametersObj = FindingGaussian(YMaxLocObj, 'y', 'Object')
+
 ##################################################
 # Magnitude Finder
+
 ##################################################
 
-def MagnitudeFinder(Loc, BackgroundMag, BackgroundLoc, Xpopt, Ypopt):
+def MagnitudeFinder(Loc, BackgroundRadius, XFitParameters, YFitParameters):
     global ReferenceStarAvgRadius
     global ObjectAvgRadius
 
-    Distance = (np.absolute(np.subtract(Loc, BackgroundLoc)))
-    YRadius = int(np.ceil(3*Xpopt[2]))
-    XRadius = int(np.ceil(3*Ypopt[2]))
+    YRadius = int(np.ceil(3*XFitParameters[2])) #This rounds up to the nearest integer
+    XRadius = int(np.ceil(3*YFitParameters[2]))
 
     Range=[]
     for i in range(-XRadius,XRadius):
         for j in range(-YRadius,YRadius):
-            if i**2 + j**2  <  YRadius**2 and XRadius**2:
+            if i**2 + j**2  <  YRadius**2 and i**2 + j**2 < XRadius**2:
                 Range.append((i + Loc[0], j + Loc[1])[::-1])
-
+    
     BackgroundRange=[]
-    BackgroundRadius = 3 #arbitrary number
     for i in range(-BackgroundRadius,BackgroundRadius):
         for j in range(-BackgroundRadius,BackgroundRadius):
-            if i**2 + j**2  <  BackgroundRadius**2:
-                BackgroundRange.append((i + BackgroundLoc[0], j + BackgroundLoc[1])[::-1])
+            if i**2 + j**2  <  BackgroundRadius**2 and (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[0]+YRadius)**2+1 and (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[1]+XRadius)**2+1:
+                BackgroundRange.append((i + Loc[0], j + Loc[1])[::-1])
 
     BackgroundValues = []
     for i in BackgroundRange:
@@ -184,13 +242,14 @@ def MagnitudeFinder(Loc, BackgroundMag, BackgroundLoc, Xpopt, Ypopt):
     
     return(MagValue)
 
-ReferenceMagValue = MagnitudeFinder(ReferenceStarLoc, ReferenceBackgroundMag, ReferenceBackgroundLoc, XpoptRef, YpoptRef)
+ReferenceMagValue = MagnitudeFinder(ReferenceStarLoc, ReferenceBackgroundRadius, XFitParametersRef, YFitParametersRef)
 
-ObjectMagValue = MagnitudeFinder(ObjectLoc, ObjectBackgroundMag, ObjectBackgroundLoc,XpoptObj, YpoptObj)
+ObjectMagValue = MagnitudeFinder(ObjectLoc, ObjectBackgroundRadius, XFitParametersObj, YFitParametersObj)
 
-####################################
+##################################################
 #Photometry for finding the catalog value
-####################################
+##################################################
+
 InstrumentalMagnitude = -2.5*np.log10(ReferenceMagValue)
 CatalogMagnitude = float(input('Enter catalog magnitude: '))
 Offset = InstrumentalMagnitude - CatalogMagnitude 
@@ -198,25 +257,94 @@ Offset = InstrumentalMagnitude - CatalogMagnitude
 ObjectCatalogValue = -2.5*np.log10(ObjectMagValue) - Offset
 print('The catalog value of the object is *maybe*',  ObjectCatalogValue)
 
-
-
 ##################################################
 # Subplots
 ##################################################
-def PlottingCurve(XMaxLoc, YMaxLoc, Xpopt, Ypopt, Radius):
-    subf = img[-15+YMaxLoc:15+YMaxLoc,-15+XMaxLoc:15+XMaxLoc]
-    f, axarr = plt.subplots(2,2)
-    axarr[0,0].plot(np.arange(-15+XMaxLoc,15+XMaxLoc), np.array(gauss_function(np.arange(-15+XMaxLoc,15+XMaxLoc),*Xpopt)))
-    axarr[1,0].imshow(subf,cmap='gray')
-    axarr[1,0].add_artist(plt.Circle((15,15),Radius,color='cyan', alpha=0.2))
-    axarr[0,1].axis('off')
-    axarr[1,1].plot((gauss_function(np.arange(15+YMaxLoc,-15+YMaxLoc,-1),*Ypopt)),np.arange(15+YMaxLoc,-15+YMaxLoc,-1))
-    plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
-    plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
-    plt.tight_layout()
+
+def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
+    sns.set()
+    sns.set_style("dark")
+    sns.set_context("poster")  
+    gs = gridspec.GridSpec(2, 2, width_ratios=[2, 1], height_ratios=[2,1])
+    ax = plt.subplot(gs[0, 0]) 
+
+    ax1 = plt.subplot(gs[0])
+    ax2 = plt.subplot(gs[1])
+    ax3 = plt.subplot(gs[2])
+    ax4 = plt.subplot(gs[3])
+    
+
+    PlotRange = 20
+
+    #Top Left
+    inverseimg = cv2.bitwise_not(img)
+    ax1.imshow(img,cmap='gray')
+    ax1.set_xlim(-PlotRange+XMaxLoc,PlotRange+XMaxLoc)
+    ax1.set_ylim(-PlotRange+YMaxLoc,PlotRange+YMaxLoc)
+    if XMaxLoc == XFitParametersObj[1]:
+        ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
+        ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),ObjectBackgroundRadius, color = 'yellow', alpha=.2))
+        ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),Radius,color='red', alpha=0.2))
+    if XMaxLoc == XFitParametersRef[1]:
+        ax1.set_title('Magnitude of %s' %(CatalogMagnitude))
+        ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),Radius,color='blue', alpha=0.2))
+        ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),ReferenceBackgroundRadius, color = 'yellow', alpha=.2))
+    # ax1.grid()
+    ax1.axis('off')
+    
+    #Top Right
+    
+    if XMaxLoc == XFitParametersObj[1]:
+        ax2.plot(ObjectYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data',color='orange')
+        ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit',color='red')
+    if XMaxLoc == XFitParametersRef[1]:
+        ax2.plot(ReferenceYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data')
+        ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit')
+    #ax2.legend(loc="lower right")
+    ax2.yaxis.set_visible(False)
+   # ax2.set_xlabel('Pixel Values')
+   # ax2.xaxis.set_label_position('top')
+   # ax2.xaxis.set_label_coords(.34,1.11)
+    ax2.xaxis.tick_top()
+    
+    #Bottom Left
+
+    if XMaxLoc == XFitParametersObj[1]:
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ObjectXPixels,label='Data',color='orange')
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit',color='red')
+    if XMaxLoc == XFitParametersRef[1]:
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ReferenceXPixels,label='Data')
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit')
+    ax3.legend(bbox_to_anchor=(0., -.2, 1., .102), loc=3,ncol=2, borderaxespad=0.)
+   # ax3.set_ylabel('Pixel Values')
+   # ax3.yaxis.set_label_coords(-0.11,.34)
+    ax3.invert_yaxis()
+    ax3.xaxis.set_visible(False)
+    # plt.xticks([])
+    
+    #Bottom Right
+    ax4.imshow(img*20,cmap='gray')
+    if XMaxLoc == XFitParametersObj[1]:
+        ax4.axvline(ObjectX, color='red')
+        ax4.axhline(ObjectY, color='red')
+    if XMaxLoc == XFitParametersRef[1]:
+        ax4.axvline(ReferenceStarX, color='blue')
+        ax4.axhline(ReferenceStarY, color='blue')
+    ax4.axis('off')
+
+    plt.subplots_adjust(wspace=.1)
+    plt.subplots_adjust(hspace=.1)
     plt.draw()
 
-PlottingCurve(XMaxLocRef, YMaxLocRef, XpoptRef, YpoptRef, ReferenceStarAvgRadius)
-PlottingCurve(XMaxLocObj, YMaxLocObj, XpoptObj, YpoptObj, ObjectAvgRadius)
+    #Title
+    if XMaxLoc == XFitParametersObj[1]:
+        plt.suptitle('Object')
+    if XMaxLoc == XFitParametersRef[1]:
+        plt.suptitle('Reference Star')
+
+
+PlottingCurve(XFitParametersRef[1], YFitParametersRef[1], XFitParametersRef, YFitParametersRef, ReferenceStarAvgRadius)
+plt.figure()
+PlottingCurve(XFitParametersObj[1], YFitParametersObj[1], XFitParametersObj, YFitParametersObj, ObjectAvgRadius)
 
 plt.show()
