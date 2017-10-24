@@ -29,8 +29,6 @@ def click(event, x, y, flags, param):
     global ReferenceStarLoc
     global ReferenceStarX
     global ReferenceStarY
-    global ReferenceBackgroundRadius
-    global ObjectBackgroundRadius
     global ObjectLoc
     global ObjectX
     global ObjectY
@@ -40,25 +38,11 @@ def click(event, x, y, flags, param):
         ReferenceStarX = x
         ReferenceStarY = y
 
-    elif event == cv2.EVENT_LBUTTONUP:
-        ReferenceBackgroundMag = img[y,x]
-        ReferenceBackgroundLoc = (x,y)
-        cv2.circle(img2, ReferenceStarLoc, int(math.sqrt((ReferenceStarLoc[0] - ReferenceBackgroundLoc[0])**2 + (ReferenceStarLoc[1] - ReferenceBackgroundLoc[1])**2)),100,1)
-        ReferenceBackgroundRadius = int(math.sqrt((ReferenceStarLoc[0] - ReferenceBackgroundLoc[0])**2 + (ReferenceStarLoc[1] - ReferenceBackgroundLoc[1])**2)) 
-        cv2.imshow("window", img2*20)
-
     elif event == cv2.EVENT_RBUTTONDOWN:
         ObjectLoc = (x,y)
         ObjectX = x
         ObjectY = y
     
-    elif event == cv2.EVENT_RBUTTONUP:
-        ObjectBackgroundMag = img[y,x]
-        ObjectBackgroundLoc = (x,y) 
-        cv2.circle(img2, ObjectLoc, int(math.sqrt((ObjectLoc[0] - ObjectBackgroundLoc[0])**2 + (ObjectLoc[1] - ObjectBackgroundLoc[1])**2)),99,1)
-        ObjectBackgroundRadius = int(math.sqrt((ObjectLoc[0] - ObjectBackgroundLoc[0])**2 + (ObjectLoc[1] - ObjectBackgroundLoc[1])**2))
-        cv2.imshow("window", img2*20)
-
 ##################################################
 # Instructions for user
 ##################################################
@@ -204,23 +188,27 @@ YFitParametersObj = FindingGaussian(YMaxLocObj, 'y', 'Object')
 
 ##################################################
 
-def MagnitudeFinder(Loc, BackgroundRadius, XFitParameters, YFitParameters):
+def MagnitudeFinder(Loc, XFitParameters, YFitParameters):
     global ReferenceStarAvgRadius
     global ObjectAvgRadius
+    global ObjectBackgroundRadius
+    global ReferenceBackgroundRadius
 
     YRadius = int(np.ceil(3*XFitParameters[2])) #This rounds up to the nearest integer
     XRadius = int(np.ceil(3*YFitParameters[2]))
+    Radius = max(XRadius,YRadius)
 
     Range=[]
-    for i in range(-XRadius,XRadius):
-        for j in range(-YRadius,YRadius):
-            if i**2 + j**2  <  YRadius**2 and i**2 + j**2 < XRadius**2:
+    for i in range(-Radius,Radius):
+        for j in range(-Radius,Radius):
+            if i**2 + j**2  <  Radius**2:
                 Range.append((i + Loc[0], j + Loc[1])[::-1])
     
+    BackgroundRadius = Radius+5
     BackgroundRange=[]
     for i in range(-BackgroundRadius,BackgroundRadius):
         for j in range(-BackgroundRadius,BackgroundRadius):
-            if i**2 + j**2  <  BackgroundRadius**2 and (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[0]+YRadius)**2+1 and (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[1]+XRadius)**2+1:
+            if i**2 + j**2  <  BackgroundRadius**2 and (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[0]+Radius)**2+1 and (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[1]+Radius)**2+1:
                 BackgroundRange.append((i + Loc[0], j + Loc[1])[::-1])
 
     BackgroundValues = []
@@ -235,16 +223,18 @@ def MagnitudeFinder(Loc, BackgroundRadius, XFitParameters, YFitParameters):
     
     if Loc == ReferenceStarLoc:
         print('The average radius of the reference star is ',(XRadius**2 + YRadius**2)**.5, 'and the magnitude is', MagValue)
-        ReferenceStarAvgRadius = (XRadius**2 + YRadius**2)**.5
+        ReferenceStarAvgRadius = Radius
+        ReferenceBackgroundRadius = Radius+5
     if Loc == ObjectLoc:
         print('The average radius of the object is', (XRadius**2 + YRadius**2)**.5, 'and the magnitude is', MagValue)
-        ObjectAvgRadius = (XRadius**2 + YRadius**2)**.5
+        ObjectAvgRadius = Radius
+        ObjectBackgroundRadius = Radius+5
     
     return(MagValue)
 
-ReferenceMagValue = MagnitudeFinder(ReferenceStarLoc, ReferenceBackgroundRadius, XFitParametersRef, YFitParametersRef)
+ReferenceMagValue = MagnitudeFinder(ReferenceStarLoc, XFitParametersRef, YFitParametersRef)
 
-ObjectMagValue = MagnitudeFinder(ObjectLoc, ObjectBackgroundRadius, XFitParametersObj, YFitParametersObj)
+ObjectMagValue = MagnitudeFinder(ObjectLoc, XFitParametersObj, YFitParametersObj)
 
 ##################################################
 #Photometry for finding the catalog value
