@@ -63,7 +63,7 @@ ap.add_argument("-i", "--image", required=True)
 args= vars(ap.parse_args())
 
 ##################################################
-# reading in the jpg, cloning a copy, and then converting that copy to grayscale
+# reading in the jpg, cloning a copy, and then converting that to grayscale
 # creating window for it to pop up in
 # activating mouse function from above
 # and key press on the picture will exit it out
@@ -71,17 +71,17 @@ args= vars(ap.parse_args())
 
 image = cv2.imread(args["image"])
 img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-img = cv2.resize(img,(0,0), fx=2, fy=2)
+img = cv2.resize(img,(0,0), fx=1.5, fy=1.5)
 img2 = img.copy()
 cv2.namedWindow("window")
 cv2.setMouseCallback("window", click)
-cv2.imshow("window", img2*20)
+cv2.imshow("window", img2*10)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
 ##################################################
 # Gaussian
-
+#
 # Gaussian Function for fitting light curves
 ##################################################
 
@@ -130,7 +130,7 @@ ReferenceStarLoc = (XMaxLocRef, YMaxLocRef)
 ObjectLoc = (XMaxLocObj, YMaxLocObj)
 ##################################################
 # Finding Gaussian
-
+#
 # Starting at the previously identified center,
 # We find the pixel values of a range around that center
 # and create a list of pixel values with the index values
@@ -185,7 +185,7 @@ YFitParametersObj = FindingGaussian(YMaxLocObj, 'y', 'Object')
 
 ##################################################
 # Magnitude Finder
-
+# 
 ##################################################
 
 def MagnitudeFinder(Loc, XFitParameters, YFitParameters):
@@ -208,7 +208,9 @@ def MagnitudeFinder(Loc, XFitParameters, YFitParameters):
     BackgroundRange=[]
     for i in range(-BackgroundRadius,BackgroundRadius):
         for j in range(-BackgroundRadius,BackgroundRadius):
-            if i**2 + j**2  <  BackgroundRadius**2 and (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[0]+Radius)**2+1 and (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[1]+Radius)**2+1:
+            if i**2 + j**2  <  BackgroundRadius**2 and \
+            (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[0]+Radius)**2+1 and \
+            (Loc[0]+i)**2 + (j+Loc[1])**2 > (Loc[1]+Radius)**2+1:
                 BackgroundRange.append((i + Loc[0], j + Loc[1])[::-1])
 
     BackgroundValues = []
@@ -283,13 +285,14 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
     ax1.axis('off')
     
     #Top Right
-    
     if XMaxLoc == XFitParametersObj[1]:
         ax2.plot(ObjectYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data',color='orange')
-        ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit',color='red')
+        ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),
+        np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit',color='red')
     if XMaxLoc == XFitParametersRef[1]:
         ax2.plot(ReferenceYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data')
-        ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit')
+        ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),
+        np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit')
     #ax2.legend(loc="lower right")
     ax2.yaxis.set_visible(False)
    # ax2.set_xlabel('Pixel Values')
@@ -298,13 +301,14 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
     ax2.xaxis.tick_top()
     
     #Bottom Left
-
     if XMaxLoc == XFitParametersObj[1]:
         ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ObjectXPixels,label='Data',color='orange')
-        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit',color='red')
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
+        Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit',color='red')
     if XMaxLoc == XFitParametersRef[1]:
         ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ReferenceXPixels,label='Data')
-        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit')
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), 
+        Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit')
     ax3.legend(bbox_to_anchor=(0., -.2, 1., .102), loc=3,ncol=2, borderaxespad=0.)
    # ax3.set_ylabel('Pixel Values')
    # ax3.yaxis.set_label_coords(-0.11,.34)
