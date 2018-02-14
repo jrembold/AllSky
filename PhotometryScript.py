@@ -27,22 +27,22 @@ import csv
 ##################################################
 
 def click(event, x, y, flags, param):
-    global ReferenceStarLoc
-    global ReferenceStarX
-    global ReferenceStarY
-    global ObjectLoc
-    global ObjectX
-    global ObjectY
+    global REFERENCESTARLOC
+    global REFERENCESTARX
+    global REFERENCESTARY
+    global OBJECTLOC
+    global OBJECTX
+    global OBJECTY
 
     if event == cv2.EVENT_LBUTTONDOWN:
-        ReferenceStarLoc = (x,y)
-        ReferenceStarX = x
-        ReferenceStarY = y
+        REFERENCESTARLOC = (x,y)
+        REFERENCESTARX = x
+        REFERENCESTARY = y
 
     elif event == cv2.EVENT_RBUTTONDOWN:
-        ObjectLoc = (x,y)
-        ObjectX = x
-        ObjectY = y
+        OBJECTLOC = (x,y)
+        OBJECTX = x
+        OBJECTY = y
     
 ##################################################
 # Instructions for user
@@ -118,13 +118,13 @@ def FindingInitialMax(X,Y,choice):
     # And this center we will use in the FindingGaussian function
     ##################################################
 
-XMaxLocRef = FindingInitialMax(ReferenceStarX, ReferenceStarY,'x')
-YMaxLocRef = FindingInitialMax(ReferenceStarX, ReferenceStarY,'y')
-InitialXMaxLocObj = FindingInitialMax(ObjectX, ObjectY, 'x')
-InitialYMaxLocObj = FindingInitialMax(ObjectX, ObjectY, 'y')
+XMaxLocRef = FindingInitialMax(REFERENCESTARX, REFERENCESTARY,'x')
+YMaxLocRef = FindingInitialMax(REFERENCESTARX, REFERENCESTARY,'y')
+InitialXMaxLocObj = FindingInitialMax(OBJECTX, OBJECTY, 'x')
+InitialYMaxLocObj = FindingInitialMax(OBJECTX, OBJECTY, 'y')
 
-ReferenceStarLoc = (XMaxLocRef, YMaxLocRef)
-InitialObjectLoc = (InitialXMaxLocObj, InitialYMaxLocObj)
+REFERENCESTARLOC = (XMaxLocRef, YMaxLocRef)
+InitialOBJECTLOC = (InitialXMaxLocObj, InitialYMaxLocObj)
 
 X = InitialXMaxLocObj
 Y = InitialYMaxLocObj
@@ -176,10 +176,10 @@ while grabbed == True:
         # And this center we will use in the FindingGaussian function
         ##################################################
 
-    XMaxLocObj = FindingMax(ObjectX, ObjectY, 'x')
-    YMaxLocObj = FindingMax(ObjectX, ObjectY, 'y')
+    XMaxLocObj = FindingMax(OBJECTX, OBJECTY, 'x')
+    YMaxLocObj = FindingMax(OBJECTX, OBJECTY, 'y')
 
-    ObjectLoc = (XMaxLocObj, YMaxLocObj)
+    OBJECTLOC = (XMaxLocObj, YMaxLocObj)
 
     XList.append(X)
     YList.append(Y)
@@ -202,10 +202,10 @@ while grabbed == True:
         return a*np.exp(-(x-x0)**2/(2*Sigma**2))
 
     def FindingGaussian(MaxLoc,choice,selection):
-        global ObjectXPixels
-        global ObjectYPixels
-        global ReferenceXPixels
-        global ReferenceYPixels
+        global OBJECTXPIXELS
+        global OBJECTYPIXELS
+        global REFERENCEXPIXELS
+        global REFERENCEYPIXELS
 
         if selection == 'ReferenceStar':
             YMaxLoc = YMaxLocRef
@@ -220,15 +220,15 @@ while grabbed == True:
             if choice == 'x':
                 Coordinates.append(img[YMaxLoc, MaxLoc+i]) 
                 if selection == 'Object':
-                    ObjectXPixels = np.array(Coordinates)
+                    OBJECTXPIXELS = np.array(Coordinates)
                 if selection == 'ReferenceStar':
-                    ReferenceXPixels = np.array(Coordinates)
+                    REFERENCEXPIXELS = np.array(Coordinates)
             if choice == 'y':
                 Coordinates.append(img[MaxLoc+i, XMaxLoc])
                 if selection == 'Object':
-                    ObjectYPixels = np.array(Coordinates)
+                    OBJECTYPIXELS = np.array(Coordinates)
                 if selection == 'ReferenceStar':
-                    ReferenceYPixels = np.array(Coordinates) 
+                    REFERENCEYPIXELS = np.array(Coordinates) 
 
         Mean = MaxLoc
         Sigma = 2
@@ -252,10 +252,10 @@ while grabbed == True:
     ##################################################
 
     def MagnitudeFinder(Loc, XFitParameters, YFitParameters):
-        global ReferenceStarAvgRadius
-        global ObjectAvgRadius
-        global ObjectBackgroundRadius
-        global ReferenceBackgroundRadius
+        global REFERENCESTARAVGRADIUS
+        global OBJECTBACKAVGRADIUS
+        global OBJECTBACKGROUNDRADIUS
+        global REFERENCEBACKGROUNDRADIUS
 
         YRadius = int(np.ceil(3*XFitParameters[2])) #This rounds up to the nearest integer
         XRadius = int(np.ceil(3*YFitParameters[2]))
@@ -290,16 +290,16 @@ while grabbed == True:
             MagValue = MagValue + (img[i] - AvgBackgroundMag)
 
         
-        if Loc == ReferenceStarLoc:
+        if Loc == REFERENCESTARLOC:
             #print('The average radius of the reference star is ',(XRadius**2 + YRadius**2)**.5, 'and the magnitude is', MagValue)
             RefRadiusList.append(Radius)
-            ReferenceStarAvgRadius = Radius
-            ReferenceBackgroundRadius = Radius+5
-        if Loc == ObjectLoc:
+            REFERENCESTARAVGRADIUS = Radius
+            REFERENCEBACKGROUNDRADIUS = Radius+5
+        if Loc == OBJECTLOC:
             #print('The average radius of the object is', (XRadius**2 + YRadius**2)**.5, 'and the magnitude is', MagValue)
             RadiusList.append(Radius)
-            ObjectAvgRadius = Radius
-            ObjectBackgroundRadius = Radius+5
+            OBJECTBACKAVGRADIUS = Radius
+            OBJECTBACKGROUNDRADIUS = Radius+5
        
             cv2.circle(img,(Loc[0],Loc[1]),Radius,(0,0,255))
             cv2.circle(img,(Loc[0],Loc[1]),BackgroundRadius,(0,0,255))
@@ -307,9 +307,9 @@ while grabbed == True:
             cv2.waitKey(0)
         return(MagValue)
 
-    ReferenceMagValue = MagnitudeFinder(ReferenceStarLoc, XFitParametersRef, YFitParametersRef)
+    ReferenceMagValue = MagnitudeFinder(REFERENCESTARLOC, XFitParametersRef, YFitParametersRef)
 
-    ObjectMagValue = MagnitudeFinder(ObjectLoc, XFitParametersObj, YFitParametersObj)
+    ObjectMagValue = MagnitudeFinder(OBJECTLOC, XFitParametersObj, YFitParametersObj)
     ObjectMagValueList.append(ObjectMagValue)
 
     ##################################################
@@ -348,22 +348,22 @@ while grabbed == True:
         ax1.set_ylim(-PlotRange+YMaxLoc,PlotRange+YMaxLoc)
         if XMaxLoc == XFitParametersObj[1]:
             ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
-            ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),ObjectBackgroundRadius, color = 'yellow', alpha=.2))
+            ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),OBJECTBACKGROUNDRADIUS, color = 'yellow', alpha=.2))
             ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),Radius,color='red', alpha=0.2))
         if XMaxLoc == XFitParametersRef[1]:
             ax1.set_title('Magnitude of %s' %(CatalogMagnitude))
             ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),Radius,color='blue', alpha=0.2))
-            ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),ReferenceBackgroundRadius, color = 'yellow', alpha=.2))
+            ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),REFERENCEBACKGROUNDRADIUS, color = 'yellow', alpha=.2))
         # ax1.grid()
         ax1.axis('off')
         
         #Top Right
         if XMaxLoc == XFitParametersObj[1]:
-            ax2.plot(ObjectYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data',color='orange')
+            ax2.plot(OBJECTYPIXELS,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data',color='orange')
             ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),
             np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit',color='red')
         if XMaxLoc == XFitParametersRef[1]:
-            ax2.plot(ReferenceYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data')
+            ax2.plot(REFERENCEYPIXELS,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data')
             ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),
             np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit')
         #ax2.legend(loc="lower right")
@@ -375,11 +375,11 @@ while grabbed == True:
         
         #Bottom Left
         if XMaxLoc == XFitParametersObj[1]:
-            ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ObjectXPixels,label='Data',color='orange')
+            ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),OBJECTXPIXELS,label='Data',color='orange')
             ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
             Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit',color='red')
         if XMaxLoc == XFitParametersRef[1]:
-            ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ReferenceXPixels,label='Data')
+            ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),REFERENCEXPIXELS,label='Data')
             ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), 
             Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit')
         ax3.legend(bbox_to_anchor=(0., -.2, 1., .102), loc=3,ncol=2, borderaxespad=0.)
@@ -392,11 +392,11 @@ while grabbed == True:
         #Bottom Right
         ax4.imshow(img*20,cmap='gray')
         if XMaxLoc == XFitParametersObj[1]:
-            ax4.axvline(ObjectX, color='red')
-            ax4.axhline(ObjectY, color='red')
+            ax4.axvline(OBJECTX, color='red')
+            ax4.axhline(OBJECTY, color='red')
         if XMaxLoc == XFitParametersRef[1]:
-            ax4.axvline(ReferenceStarX, color='blue')
-            ax4.axhline(ReferenceStarY, color='blue')
+            ax4.axvline(REFERENCESTARX, color='blue')
+            ax4.axhline(REFERENCESTARY, color='blue')
         ax4.axis('off')
 
         plt.subplots_adjust(wspace=.1)
@@ -411,7 +411,7 @@ while grabbed == True:
 
         plt.savefig(f'testplot{num}.pdf')
 
-    PlottingCurve(XFitParametersObj[1], YFitParametersObj[1], XFitParametersObj, YFitParametersObj, ObjectAvgRadius)
+    PlottingCurve(XFitParametersObj[1], YFitParametersObj[1], XFitParametersObj, YFitParametersObj, OBJECTBACKAVGRADIUS)
     print(num)
     num += 1
 plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
@@ -442,22 +442,22 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
     ax1.set_ylim(-PlotRange+YMaxLoc,PlotRange+YMaxLoc)
     if XMaxLoc == XFitParametersObj[1]:
         ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
-        ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),ObjectBackgroundRadius, color = 'yellow', alpha=.2))
+        ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),OBJECTBACKGROUNDRADIUS, color = 'yellow', alpha=.2))
         ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),Radius,color='red', alpha=0.2))
     if XMaxLoc == XFitParametersRef[1]:
         ax1.set_title('Magnitude of %s' %(CatalogMagnitude))
         ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),Radius,color='blue', alpha=0.2))
-        ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),ReferenceBackgroundRadius, color = 'yellow', alpha=.2))
+        ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),REFERENCEBACKGROUNDRADIUS, color = 'yellow', alpha=.2))
     # ax1.grid()
     ax1.axis('off')
     
     #Top Right
     if XMaxLoc == XFitParametersObj[1]:
-        ax2.plot(ObjectYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data',color='orange')
+        ax2.plot(OBJECTYPIXELS,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data',color='orange')
         ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),
         np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit',color='red')
     if XMaxLoc == XFitParametersRef[1]:
-        ax2.plot(ReferenceYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data')
+        ax2.plot(REFERENCEYPIXELS,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data')
         ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),
         np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit')
     #ax2.legend(loc="lower right")
@@ -469,11 +469,11 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
     
     #Bottom Left
     if XMaxLoc == XFitParametersObj[1]:
-        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ObjectXPixels,label='Data',color='orange')
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),OBJECTXPIXELS,label='Data',color='orange')
         ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
         Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit',color='red')
     if XMaxLoc == XFitParametersRef[1]:
-        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ReferenceXPixels,label='Data')
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),REFERENCEXPIXELS,label='Data')
         ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), 
         Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit')
     ax3.legend(bbox_to_anchor=(0., -.2, 1., .102), loc=3,ncol=2, borderaxespad=0.)
@@ -486,11 +486,11 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
     #Bottom Right
     ax4.imshow(img*20,cmap='gray')
     if XMaxLoc == XFitParametersObj[1]:
-        ax4.axvline(ObjectX, color='red')
-        ax4.axhline(ObjectY, color='red')
+        ax4.axvline(OBJECTX, color='red')
+        ax4.axhline(OBJECTY, color='red')
     if XMaxLoc == XFitParametersRef[1]:
-        ax4.axvline(ReferenceStarX, color='blue')
-        ax4.axhline(ReferenceStarY, color='blue')
+        ax4.axvline(REFERENCESTARX, color='blue')
+        ax4.axhline(REFERENCESTARY, color='blue')
     ax4.axis('off')
 
     plt.subplots_adjust(wspace=.1)
@@ -504,9 +504,9 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
         plt.suptitle('Reference Star')
 
 
-PlottingCurve(XFitParametersRef[1], YFitParametersRef[1], XFitParametersRef, YFitParametersRef, ReferenceStarAvgRadius)
+PlottingCurve(XFitParametersRef[1], YFitParametersRef[1], XFitParametersRef, YFitParametersRef, REFERENCESTARAVGRADIUS)
 plt.figure()
-PlottingCurve(XFitParametersObj[1], YFitParametersObj[1], XFitParametersObj, YFitParametersObj, ObjectAvgRadius)
+PlottingCurve(XFitParametersObj[1], YFitParametersObj[1], XFitParametersObj, YFitParametersObj, OBJECTBACKAVGRADIUS)
 
 plt.show()
 '''
