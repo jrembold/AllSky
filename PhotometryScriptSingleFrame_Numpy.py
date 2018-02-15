@@ -102,10 +102,14 @@ def Gaussian(x, a, x0, Sigma):
 ##################################################
 
 def FindingMax(X,Y):
-    d = 10
-    ImgSearch = img[Y-d:Y+d,X-d:X+d]
+    # Radius of search
+    r = 10
+    # Accessing array so Y values first
+    ImgSearch = img[Y-r:Y+r,X-r:X+r]
+    # Gets coordinates relative to sub image
     MaxLoc = np.unravel_index(ImgSearch.argmax(),ImgSearch.shape)
-    MaxLocShifted = (X-d+MaxLoc[1], Y-d+MaxLoc[0])
+    # Shifts accordingly to get image coordinates
+    MaxLocShifted = (X-r+MaxLoc[1], Y-r+MaxLoc[0])
     return MaxLocShifted
 
 ##################################################
@@ -141,16 +145,12 @@ def FindingGaussian(MaxLoc):
 
     if MaxLoc == XMaxLocRef:
         Coordinates = img[YMaxLocRef, MaxLoc-20:MaxLoc+20]
-        ReferenceXPixels=Coordinates
     if MaxLoc == YMaxLocRef:
         Coordinates = img[MaxLoc-20:MaxLoc+20, XMaxLocRef]
-        ReferenceYPixels=Coordinates
     if MaxLoc == XMaxLocObj:
         Coordinates = img[YMaxLocObj, MaxLoc-20:MaxLoc+20]
-        ObjectXPixels=Coordinates
     if MaxLoc == YMaxLocObj:
         Coordinates = img[MaxLoc-20:MaxLoc+20, XMaxLocObj]
-        ObjectYPixels=Coordinates
 
     Mean = MaxLoc
     Sigma = 3
@@ -286,9 +286,14 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
     def getPlotSlice(XCent, YCent, Dir, PlotRange):
         '''Function to return a single column or row sliced at the desired location
         and in the desired direction. XCent and YCent are integers and Dir is a string
-        of either "x" or "y"'''
+        of either "x" or "y"
+
+        I realized later you may have already made something similar in FindingDataMax?
+        '''
+        # Gaussian Peaks not integers so converting to integers
         XCent = int(XCent)
         YCent = int(YCent)
+        # Extracting desired slice
         if Dir == 'x':
             return img[YCent,XCent-PlotRange:XCent+PlotRange]
         else:
@@ -335,13 +340,19 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
     
     #Bottom Left
     if XMaxLoc == XFitParametersObj[1]:
-        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ObjectXPixels,label='Data',color='orange')
         ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
-        Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit',color='red')
+                getPlotSlice(XMaxLoc, YMaxLoc,'x',PlotRange),
+                label='Data',color='orange')
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
+                Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),
+                label='Gaussian Fit',color='red')
     if XMaxLoc == XFitParametersRef[1]:
-        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),ReferenceXPixels,label='Data')
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
+                getPlotSlice(XMaxLoc, YMaxLoc, 'x', PlotRange),
+                label='Data')
         ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), 
-        Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),label='Gaussian Fit')
+                Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),*XFitParameters),
+                label='Gaussian Fit')
     ax3.legend(bbox_to_anchor=(0., -.2, 1., .102), loc=3,ncol=2, borderaxespad=0.)
    # ax3.set_ylabel('Pixel Values')
    # ax3.yaxis.set_label_coords(-0.11,.34)
