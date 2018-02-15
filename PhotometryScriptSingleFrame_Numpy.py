@@ -290,7 +290,7 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
 
         I realized later you may have already made something similar in FindingDataMax?
         '''
-        # Gaussian Peaks not integers so converting to integers
+        # Gaussian positions are not integers so converting to integers
         XCent = int(XCent)
         YCent = int(YCent)
         # Extracting desired slice
@@ -301,7 +301,6 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
 
     #Top Left
     inverseimg = cv2.bitwise_not(img)
-    # ax1.imshow(img[YMaxLoc-PlotRange:YMaxLoc+PlotRange, XMaxLoc-PlotRange:XMaxLoc+PlotRange], cmap='gray')
     ax1.imshow(img,cmap='gray')
     ax1.set_xlim(-PlotRange+XMaxLoc,PlotRange+XMaxLoc)
     ax1.set_ylim(-PlotRange+YMaxLoc,PlotRange+YMaxLoc)
