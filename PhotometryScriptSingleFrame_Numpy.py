@@ -138,28 +138,17 @@ def FindingGaussian(MaxLoc):
     Range = np.arange(MaxLoc-20,MaxLoc+20)
 
     if MaxLoc == XMaxLocRef:
-        YMaxLoc = YMaxLocRef
-        for i in np.arange(-20,20):
-            Coordinates.append(img[YMaxLoc, MaxLoc+i])
-            ReferenceXPixels = np.array(Coordinates)
-    
+        Coordinates = img[YMaxLocRef, MaxLoc-20:MaxLoc+20]
+        ReferenceXPixels=Coordinates
     if MaxLoc == YMaxLocRef:
-        XMaxLoc = XMaxLocRef
-        for i in np.arange(-20,20):
-            Coordinates.append(img[MaxLoc+i, XMaxLoc+i])
-            ReferenceYPixels = np.array(Coordinates)
-
+        Coordinates = img[MaxLoc-20:MaxLoc+20, XMaxLocRef]
+        ReferenceYPixels=Coordinates
     if MaxLoc == XMaxLocObj:
-        YMaxLoc = YMaxLocObj
-        for i in np.arange(-20,20):
-            Coordinates.append(img[YMaxLoc, MaxLoc+i])
-            ObjectXPixels = np.array(Coordinates)
-    
+        Coordinates = img[YMaxLocObj, MaxLoc-20:MaxLoc+20]
+        ObjectXPixels=Coordinates
     if MaxLoc == YMaxLocObj:
-        XMaxLoc = XMaxLocObj
-        for i in np.arange(-20,20):
-            Coordinates.append(img[MaxLoc+i, XMaxLoc+i])
-            ObjectYPixels = np.array(Coordinates)
+        Coordinates = img[MaxLoc-20:MaxLoc+20, XMaxLocObj]
+        ObjectYPixels=Coordinates
 
     Mean = MaxLoc
     Sigma = 3
