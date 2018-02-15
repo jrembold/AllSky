@@ -18,6 +18,9 @@ import math
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import matplotlib.gridspec as gridspec
+import matplotlib
+
+matplotlib.rcParams['figure.figsize']=(10,10)
 
 ##################################################
 # Creating function for mouse click
@@ -278,7 +281,6 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
     sns.set()
     sns.set_style("dark")
     sns.set_context("poster") 
-    plt.figure(figsize=(10,10))
     gs = gridspec.GridSpec(2, 2, width_ratios=[2, 1], height_ratios=[2,1])
     ax = plt.subplot(gs[0, 0]) 
 
