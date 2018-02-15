@@ -139,37 +139,86 @@ ObjectLoc = (XMaxLocObj, YMaxLocObj)
 # And we fit the data to the Gaussian function. 
 ##################################################
 
-def FindingGaussian(MaxLoc,choice,selection):
+# def FindingGaussian(MaxLoc,choice,selection):
+    # global ObjectXPixels
+    # global ObjectYPixels
+    # global ReferenceXPixels
+    # global ReferenceYPixels
+
+    # if selection == 'ReferenceStar':
+        # YMaxLoc = YMaxLocRef
+        # XMaxLoc = XMaxLocRef
+    # if selection == 'Object':
+        # YMaxLoc = YMaxLocObj
+        # XMaxLoc = XMaxLocObj
+    # Range = np.arange(MaxLoc-20,MaxLoc+20)
+    # Coordinates = []
+    # for i in np.arange(-20,20):
+        # if choice == 'x':
+            # Coordinates.append(img[YMaxLoc, MaxLoc+i]) 
+            # if selection == 'Object':
+                # ObjectXPixels = np.array(Coordinates)
+            # if selection == 'ReferenceStar':
+                # ReferenceXPixels = np.array(Coordinates)
+        # if choice == 'y':
+            # Coordinates.append(img[MaxLoc+i, XMaxLoc])
+            # if selection == 'Object':
+                # ObjectYPixels = np.array(Coordinates)
+            # if selection == 'ReferenceStar':
+                # ReferenceYPixels = np.array(Coordinates) 
+
+    # Mean = MaxLoc
+    # Sigma = 3
+    # FitParameters, pcov = curve_fit(Gaussian, Range, Coordinates, p0 = [np.max(Coordinates), Mean, Sigma])
+    # return(FitParameters)
+
+
+def FindingGaussian(MaxLoc):
     global ObjectXPixels
     global ObjectYPixels
     global ReferenceXPixels
     global ReferenceYPixels
 
-    if selection == 'ReferenceStar':
+    if MaxLoc == XMaxLocRef:
+        Coordinates = []
         YMaxLoc = YMaxLocRef
+        Range = np.arange(MaxLoc-20,MaxLoc+20)
+        for i in np.arange(-20,20):
+            Coordinates.append(img[YMaxLoc, MaxLoc+i])
+            ReferenceXPixels = np.array(Coordinates)
+    
+    if MaxLoc == YMaxLocRef:
+        Coordinates = []
         XMaxLoc = XMaxLocRef
-    if selection == 'Object':
+        Range = np.arange(MaxLoc-20,MaxLoc+20)
+        for i in np.arange(-20,20):
+            Coordinates.append(img[MaxLoc+i, XMaxLoc+i])
+            ReferenceYPixels = np.array(Coordinates)
+
+    if MaxLoc == XMaxLocObj:
+        Coordinates = []
         YMaxLoc = YMaxLocObj
+        Range = np.arange(MaxLoc-20,MaxLoc+20)
+        for i in np.arange(-20,20):
+            Coordinates.append(img[YMaxLoc, MaxLoc+i])
+            ObjectXPixels = np.array(Coordinates)
+    
+    if MaxLoc == YMaxLocObj:
+        Coordinates = []
         XMaxLoc = XMaxLocObj
-    Range = np.arange(MaxLoc-20,MaxLoc+20)
-    Coordinates = []
-    for i in np.arange(-20,20):
-        if choice == 'x':
-            Coordinates.append(img[YMaxLoc, MaxLoc+i]) 
-            if selection == 'Object':
-                ObjectXPixels = np.array(Coordinates)
-            if selection == 'ReferenceStar':
-                ReferenceXPixels = np.array(Coordinates)
-        if choice == 'y':
-            Coordinates.append(img[MaxLoc+i, XMaxLoc])
-            if selection == 'Object':
-                ObjectYPixels = np.array(Coordinates)
-            if selection == 'ReferenceStar':
-                ReferenceYPixels = np.array(Coordinates) 
+        Range = np.arange(MaxLoc-20,MaxLoc+20)
+        for i in np.arange(-20,20):
+            Coordinates.append(img[MaxLoc+i, XMaxLoc+i])
+            ObjectYPixels = np.array(Coordinates)
 
     Mean = MaxLoc
     Sigma = 3
+    #try:
     FitParameters, pcov = curve_fit(Gaussian, Range, Coordinates, p0 = [np.max(Coordinates), Mean, Sigma])
+        # return(FitParameters)
+    # except RuntimeError: 
+        # FitParameters = [np.max(Coordinates),Mean, Sigma]
+        # return(FitParameters)
     return(FitParameters)
 
 ##################################################
@@ -178,10 +227,22 @@ def FindingGaussian(MaxLoc,choice,selection):
 # for both axes for both items
 ##################################################
 
-XFitParametersRef = FindingGaussian(XMaxLocRef, 'x','ReferenceStar')
-YFitParametersRef = FindingGaussian(YMaxLocRef, 'y', 'ReferenceStar')
-XFitParametersObj = FindingGaussian(XMaxLocObj, 'x', 'Object')
-YFitParametersObj = FindingGaussian(YMaxLocObj, 'y', 'Object')
+XFitParametersRef = FindingGaussian(XMaxLocRef)
+YFitParametersRef = FindingGaussian(YMaxLocRef)
+XFitParametersObj = FindingGaussian(XMaxLocObj)
+YFitParametersObj = FindingGaussian(YMaxLocObj)
+
+
+# ##################################################
+# # FitParameters contains the amplitude, standard deviation and mean
+# # The standard deviation is needed later so we call this function 
+# # for both axes for both items
+# ##################################################
+
+# XFitParametersRef = FindingGaussian(XMaxLocRef, 'x','ReferenceStar')
+# YFitParametersRef = FindingGaussian(YMaxLocRef, 'y', 'ReferenceStar')
+# XFitParametersObj = FindingGaussian(XMaxLocObj, 'x', 'Object')
+# YFitParametersObj = FindingGaussian(YMaxLocObj, 'y', 'Object')
 
 ##################################################
 # Magnitude Finder
