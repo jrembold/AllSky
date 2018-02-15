@@ -102,9 +102,11 @@ def Gaussian(x, a, x0, Sigma):
 ##################################################
 
 def FindingMax(X,Y):
-    ImgSearch = img[X-10:X+10,Y-10:Y+10]
+    d = 10
+    ImgSearch = img[Y-d:Y+d,X-d:X+d]
     MaxLoc = np.unravel_index(ImgSearch.argmax(),ImgSearch.shape)
-    return (MaxLoc[0]+X,MaxLoc[1]+Y)
+    MaxLocShifted = (X-d+MaxLoc[1], Y-d+MaxLoc[0])
+    return MaxLocShifted
 
 ##################################################
 # In order to center the x and y of both items
@@ -281,8 +283,20 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
 
     PlotRange = 20
 
+    def getPlotSlice(XCent, YCent, Dir, PlotRange):
+        '''Function to return a single column or row sliced at the desired location
+        and in the desired direction. XCent and YCent are integers and Dir is a string
+        of either "x" or "y"'''
+        XCent = int(XCent)
+        YCent = int(YCent)
+        if Dir == 'x':
+            return img[YCent,XCent-PlotRange:XCent+PlotRange]
+        else:
+            return img[YCent-PlotRange:YCent+PlotRange, XCent]
+
     #Top Left
     inverseimg = cv2.bitwise_not(img)
+    # ax1.imshow(img[YMaxLoc-PlotRange:YMaxLoc+PlotRange, XMaxLoc-PlotRange:XMaxLoc+PlotRange], cmap='gray')
     ax1.imshow(img,cmap='gray')
     ax1.set_xlim(-PlotRange+XMaxLoc,PlotRange+XMaxLoc)
     ax1.set_ylim(-PlotRange+YMaxLoc,PlotRange+YMaxLoc)
@@ -298,14 +312,20 @@ def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
     ax1.axis('off')
     
     #Top Right
-    if XMaxLoc == XFitParametersObj[1]:
-        ax2.plot(ObjectYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data',color='orange')
+    if YMaxLoc == YFitParametersObj[1]:
+        ax2.plot(getPlotSlice(XMaxLoc,YMaxLoc,'y',PlotRange),
+                np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),
+                label='Data',color='orange')
         ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),
-        np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit',color='red')
-    if XMaxLoc == XFitParametersRef[1]:
-        ax2.plot(ReferenceYPixels,np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Data')
+                np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),
+                label='Gaussian Fit',color='red')
+    if YMaxLoc == YFitParametersRef[1]:
+        ax2.plot(getPlotSlice(XMaxLoc,YMaxLoc,'y',PlotRange),
+                np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),
+                label='Data')
         ax2.plot((Gaussian(np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),*YFitParameters)),
-        np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),label='Gaussian Fit')
+                np.arange(-PlotRange+YMaxLoc,PlotRange+YMaxLoc,1),
+                label='Gaussian Fit')
     #ax2.legend(loc="lower right")
     ax2.yaxis.set_visible(False)
    # ax2.set_xlabel('Pixel Values')
