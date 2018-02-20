@@ -1,6 +1,10 @@
 Observation_Log.txt
 
-*.swp
+# Swap
+/*[._]*.s[a-v][a-z]*/
+[._]*.sw[a-p]
+/*[._]s[a-v][a-z]*/
+[._]sw[a-p]
 
 ## Python Stuff! ##
 __pycache__/
