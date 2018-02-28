@@ -78,6 +78,10 @@ vid = cv2.VideoCapture(args["video"])
 (Grabbed,img) = vid.read()
 img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+blurred = cv2.GaussianBlur(img, (5, 5), 0)
+Thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
+
+
 img2 = img.copy()
 cv2.namedWindow("window")
 cv2.setMouseCallback("window", click)
@@ -87,17 +91,20 @@ cv2.destroyAllWindows()
 
 
 def FindingInitialMax(X,Y):
+    global cX,cY
     # Radius of search
     r = 10
     # Accessing array so Y values first
-    ImgSearch = img[Y-r:Y+r,X-r:X+r]
-    # Gets coordinates relative to sub image
-    MaxLoc = np.unravel_index(ImgSearch.argmax(),ImgSearch.shape)
-    # Shifts accordingly to get image coordinates
-    MaxLocShifted = (X-r+MaxLoc[1], Y-r+MaxLoc[0])
-    return MaxLocShifted
-
-
+    thresh = Thresh[Y-r:Y+r,X-r:X+r]
+    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+	cv2.CHAIN_APPROX_SIMPLE)
+    cnts = cnts[0]
+    M = cv2.moments(cnts)
+    cX = int(M["m10"] / M["m00"])
+    cY = int(M["m01"] / M["m00"])
+    MaxLocShifted = (X-r+cX, Y-r+cY)
+    return MaxLocShifted 
+    
 XMAXLOCREF,YMAXLOCREF = FindingInitialMax(REFERENCESTARX, REFERENCESTARY)
 InitialXMaxLocObj,InitialYMaxLocObj = FindingInitialMax(OBJECTX, OBJECTY)
 
@@ -121,7 +128,7 @@ ObjectMagValueList = []
 # as the center is the brightest
 ##################################################
 
-Iteration = 10
+Iteration = 100
 while Grabbed == True:
 
     (Grabbed, img) = vid.read()
@@ -129,15 +136,20 @@ while Grabbed == True:
         break
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+
     def FindingMax(X,Y):
+        global MaxLocShifted
         # Radius of search
         r = 10
         # Accessing array so Y values first
-        ImgSearch = img[Y-r:Y+r,X-r:X+r]
-        # Gets coordinates relative to sub image
-        MaxLoc = np.unravel_index(ImgSearch.argmax(),ImgSearch.shape)
-        # Shifts accordingly to get image coordinates
-        MaxLocShifted = (X-r+MaxLoc[1], Y-r+MaxLoc[0])
+        thresh = Thresh[Y-r:Y+r,X-r:X+r]
+        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE)
+        cnts = cnts[0]
+        M = cv2.moments(cnts)
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        MaxLocShifted = (X-r+cX, Y-r+cY)
         return MaxLocShifted
 
     ##################################################
@@ -257,7 +269,7 @@ while Grabbed == True:
                 if i**2 + j**2  <  Radius**2:
                     Range.append((i + Loc[0], j + Loc[1])[::-1])
 
-        print(Radius)
+        #print(Radius)
         BackgroundRadius = Radius+5
         BackgroundRange=[]
         for i in range(-BackgroundRadius,BackgroundRadius):
@@ -312,6 +324,7 @@ while Grabbed == True:
     ##################################################
 
     def PlottingCurve(XMaxLoc, YMaxLoc, XFitParameters, YFitParameters, Radius):
+        print('Ahhhh!')
         sns.set()
         sns.set_style("dark")
         sns.set_context("poster") 
@@ -351,6 +364,7 @@ while Grabbed == True:
             ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
             ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),OBJECTBACKGROUNDRADIUS, color = 'yellow', alpha=.2))
             ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),Radius,color='red', alpha=0.2))
+            ax1.add_artist(plt.Circle((MaxLocShifted),2, color = 'white',))
         if XMaxLoc == XFitParametersRef[1]:
             ax1.set_title('Magnitude of %s' %(CatalogMagnitude))
             ax1.add_artist(plt.Circle((XMaxLoc,YMaxLoc),Radius,color='blue', alpha=0.2))
