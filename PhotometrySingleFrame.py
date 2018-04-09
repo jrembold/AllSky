@@ -268,31 +268,22 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
 # Instructions for user
 ##################################################
 
-def main(vid_name,Folder):
-    global REFERENCESTARLOC
-    global OBJECTLOC
-    global REFERENCESTARAVGRADIUS
-    global OBJECTBACKAVGRADIUS
-    global OBJECTBACKGROUNDRADIUS
-    global REFERENCEBACKGROUNDRADIUS
-    global XFitParametersRef
-    global YFitParametersRef
-    global XFitParametersObj
-    global YFitParametersObj
-    global CatalogMagnitude
-    global Iteration
+    # global REFERENCESTARLOC
+    # global OBJECTLOC
+    # global REFERENCESTARAVGRADIUS
+    # global OBJECTBACKAVGRADIUS
+    # global OBJECTBACKGROUNDRADIUS
+    # global REFERENCEBACKGROUNDRADIUS
+    # global XFitParametersRef
+    # global YFitParametersRef
+    # global XFitParametersObj
+    # global YFitParametersObj
+    # global CatalogMagnitude
+    # global Iteration
 
-    record = True
-    frame_no = -1
-
-    vid = cv2.VideoCapture(vid_name)
-    (Grabbed,img) = vid.read()
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    blurred = cv2.GaussianBlur(img, (5, 5), 0)
-    Thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
-
-
+    
+    image = cv2.imread(args["image"])
+    img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     img2 = img.copy()
     cv2.namedWindow("window")
     cv2.setMouseCallback("window", click)
@@ -313,40 +304,34 @@ def main(vid_name,Folder):
     Instrument = []
     Iteration = 1
     Round = 0
-    while Grabbed == True:
 
-        (Grabbed, img) = vid.read()
-        if Grabbed == False:
-            break
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img) 
 
-        OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img) 
+    XFitParametersObj = GaussianFinder(OBJECTLOC[0], img)
+    YFitParametersObj = GaussianFinder(OBJECTLOC[1], img)
 
-        XFitParametersObj = GaussianFinder(OBJECTLOC[0], img)
-        YFitParametersObj = GaussianFinder(OBJECTLOC[1], img)
+    ObjectMagValue=MagnitudeFinder(OBJECTLOC,XFitParametersObj,YFitParametersObj, img)
+    ObjectMagValueList.append(ObjectMagValue)
 
-        ObjectMagValue=MagnitudeFinder(OBJECTLOC,XFitParametersObj,YFitParametersObj, img)
-        ObjectMagValueList.append(ObjectMagValue)
+    InstrumentalMagnitude = -2.5*np.log10(ReferenceMagValue)
+    CatalogMagnitude = -2.65
+    Offset = InstrumentalMagnitude - CatalogMagnitude 
+    #CatalogMagnitude = float(input('Enter catalog magnitude: '))
 
-        InstrumentalMagnitude = -2.5*np.log10(ReferenceMagValue)
-        CatalogMagnitude = -2.65
-        Offset = InstrumentalMagnitude - CatalogMagnitude 
-        #CatalogMagnitude = float(input('Enter catalog magnitude: '))
+    ####TEMP
+    Offset = 5
 
-        ####TEMP
-        Offset = 5
+    ObjectCatalogValue = 2.5*np.log10(ObjectMagValue) - Offset
+    CatalogList.append(ObjectCatalogValue)
+    # if Iteration > 145:
+        # plt.figure()
+        # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
+        # plt.xlabel('Frame')
+        # plt.ylabel('Pixel Values')
+        # plt.yticks([])
+        # plt.savefig(f"/home/luke/{Folder}/LightCurve.png", bbox_inches='tight')
 
-        ObjectCatalogValue = 2.5*np.log10(ObjectMagValue) - Offset
-        CatalogList.append(ObjectCatalogValue)
-        # if Iteration > 145:
-            # plt.figure()
-            # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
-            # plt.xlabel('Frame')
-            # plt.ylabel('Pixel Values')
-            # plt.yticks([])
-            # plt.savefig(f"/home/luke/{Folder}/LightCurve.png", bbox_inches='tight')
-
-        PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTBACKAVGRADIUS, img,Folder)
+    PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTBACKAVGRADIUS, img,Folder)
         Iteration += 1
     plt.figure()
     plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
@@ -357,12 +342,4 @@ def main(vid_name,Folder):
 ##################################################
 # open with "python /path/to/script.py --image /path/to/picture.jpg"
 ##################################################
-if __name__ == "__main__":
-    print('Instructions')
-    print('Reference Star = left click ||| Object = right click')
-    print('Click on item. It does not need to be exact. Continue to hold and drag cursor to area of empty space next to item and release.')
-    print('If circle does not satisfy what you were trying to do, feel free to repeat the previous instruction.')
-    ap=argparse.ArgumentParser()
-    ap.add_argument("-i", "--video", required=True)
-    args= vars(ap.parse_args())
-    main(args['video'])
+
