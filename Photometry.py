@@ -23,7 +23,7 @@ import matplotlib
 
 REFERENCESTARLOC = (0,0)
 OBJECTLOC = (0,0)
-OBJECTBACKAVGRADIUS = 0
+OBJECTAVGRADIUS = 0
 OBJECTBACKGROUNDRADIUS = 0
 REFERENCESTARAVGRADIUS = 0
 REFERENCEBACKGROUNDRADIUS = 0
@@ -52,7 +52,7 @@ def MaxFinder(X, Y, img):
     # Accessing array so Y values first
     subimg = img[Y-r:Y+r, X-r:X+r]
     blur = cv2.GaussianBlur(subimg, (5,5), 0)
-    thresh = cv2.threshold(blur, 60, 255, cv2.THRESH_BINARY)[1]
+    thresh = cv2.threshold(blur, 10, 255, cv2.THRESH_BINARY)[1]
     im2, contours, heir = cv2.findContours(thresh, cv2.RETR_TREE,
 	cv2.CHAIN_APPROX_SIMPLE)
 
@@ -97,6 +97,7 @@ def GaussianFinder(MaxLoc, img):
     return(FitParameters)
 
 def MagnitudeFinder(Loc, XFitParameters, YFitParameters, img):
+    global Radius, OBJECTBACKGROUNDRADIUS, REFERENCEBACKGROUNDRADIUS, OBJECTAVGRADIUS, REFERENCESTARAVGRADIUS
     YRadius = int(np.ceil(2*XFitParameters[2])) 
     XRadius = int(np.ceil(2*YFitParameters[2]))
     Radius = max(XRadius,YRadius)
@@ -115,7 +116,7 @@ def MagnitudeFinder(Loc, XFitParameters, YFitParameters, img):
         for j in range(-BackgroundRadius,BackgroundRadius):
             if i**2 + j**2  <  BackgroundRadius**2 and \
                 i**2 + j**2 > Radius**2:
-                BackgroundRange.append((i + Loc[0], j + Loc[1]))#[::-1])
+                BackgroundRange.append((i + Loc[0], j + Loc[1])[::-1])
 
     # BackgroundRange = np.array(BackgroundRange)
     # for i in BackgroundRange[:,0]:
@@ -138,7 +139,7 @@ def MagnitudeFinder(Loc, XFitParameters, YFitParameters, img):
         REFERENCESTARAVGRADIUS = Radius
         REFERENCEBACKGROUNDRADIUS = Radius+5
     if Loc == OBJECTLOC:
-        OBJECTBACKAVGRADIUS = Radius
+        OBJECTAVGRADIUS = Radius
         OBJECTBACKGROUNDRADIUS = Radius+5
     return(MagValue)
 
@@ -174,24 +175,43 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
     
     PlotRange = 20
 
-    #Top Left
+    # #Top Left
+    # ax1.imshow(img,cmap='gray')
+    # ax1.set_xlim(-PlotRange+OBJECTLOC[0],PlotRange+OBJECTLOC[0])
+    # ax1.set_ylim(-PlotRange+OBJECTLOC[1],PlotRange+OBJECTLOC[1])
+    # if XMaxLoc == int(XFitParametersObj[1]):
+        # #ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
+        # ax1.add_artist(plt.Circle((OBJECTLOC),OBJECTBACKGROUNDRADIUS, 
+            # color = 'yellow', alpha=.2))
+        # ax1.add_artist(plt.Circle((OBJECTLOC),Radius,color='red', alpha=0.2))
+        # ax1.add_artist(plt.Circle((OBJECTLOC),.1, color = 'black',))
+    # # if XMaxLoc == int(XFitParametersRef[1]):
+        # # ax1.set_title('Magnitude of %s' %(CatalogMagnitude))
+        # # ax1.add_artist(plt.Circle((REFERENCESTARLOC),Radius,
+            # # color='blue', alpha=0.2))
+        # # ax1.add_artist(plt.Circle((REFERENCESTARLOC),REFERENCEBACKGROUNDRADIUS, 
+            # # color = 'yellow', alpha=.2))
+    # ax1.axis('off')
+   
     ax1.imshow(img,cmap='gray')
-    ax1.set_xlim(-PlotRange+OBJECTLOC[0],PlotRange+OBJECTLOC[0])
-    ax1.set_ylim(-PlotRange+OBJECTLOC[1],PlotRange+OBJECTLOC[1])
     if XMaxLoc == int(XFitParametersObj[1]):
-        #ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
+        ax1.set_xlim(-PlotRange+OBJECTLOC[0],PlotRange+OBJECTLOC[0])
+        ax1.set_ylim(-PlotRange+OBJECTLOC[1],PlotRange+OBJECTLOC[1])
+        # ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
         ax1.add_artist(plt.Circle((OBJECTLOC),OBJECTBACKGROUNDRADIUS, 
             color = 'yellow', alpha=.2))
-        ax1.add_artist(plt.Circle((OBJECTLOC),Radius,color='red', alpha=0.2))
-        ax1.add_artist(plt.Circle((OBJECTLOC),.1, color = 'black',))
-    # if XMaxLoc == int(XFitParametersRef[1]):
+        ax1.add_artist(plt.Circle((OBJECTLOC),OBJECTAVGRADIUS,color='red',alpha=.2))
+        # ax1.add_artist(plt.Circle((OBJECTLOC),.1, color = 'black',))
+    if XMaxLoc == int(XFitParametersRef[1]):
+        ax1.set_xlim(-PlotRange+REFERENCESTARLOC[0],PlotRange+REFERENCESTARLOC[0])
+        ax1.set_ylim(-PlotRange+REFERENCESTARLOC[1],PlotRange+REFERENCESTARLOC[1])
         # ax1.set_title('Magnitude of %s' %(CatalogMagnitude))
-        # ax1.add_artist(plt.Circle((REFERENCESTARLOC),Radius,
-            # color='blue', alpha=0.2))
-        # ax1.add_artist(plt.Circle((REFERENCESTARLOC),REFERENCEBACKGROUNDRADIUS, 
-            # color = 'yellow', alpha=.2))
+        ax1.add_artist(plt.Circle((REFERENCESTARLOC),5,
+            color='blue', alpha=0.2))
+        ax1.add_artist(plt.Circle((REFERENCESTARLOC),REFERENCEBACKGROUNDRADIUS, 
+            color = 'yellow', alpha=.2))
     ax1.axis('off')
-    
+
     #Top Right
     if YMaxLoc == int(YFitParametersObj[1]):
         ax2.plot(getPlotSlice(OBJECTLOC[0],OBJECTLOC[1],'y',PlotRange),
@@ -263,16 +283,34 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
         # plt.suptitle('Reference Star')
     if XFitParameters[0] == XFitParametersObj[0]:
         plt.savefig(f'/home/luke/{Folder}/ObjectPlot{Iteration:03d}.png', bbox_inches='tight')
+    if XFitParameters[0] == XFitParametersRef[0]:
+        plt.savefig(f'/home/luke/{Folder}/ReferencePlot.png', bbox_inches='tight')
 
 ##################################################
 # Instructions for user
 ##################################################
+def InitialRead(VideoName):
+    Array = np.array([],ndmin=3)
+    Video = cv2.VideoCapture(VideoName)
+    Grabbed, Image = Video.read()
+    Image = cv2.cvtColor(Image, cv2.COLOR_BGR2GRAY)
+    ImageStack = Image
+    (Grabbed,Image) = Video.read()
+    while Grabbed == True:
+        Image = cv2.cvtColor(Image, cv2.COLOR_BGR2GRAY)
+        ImageStack = np.dstack([ImageStack,Image])
+        print(np.shape(ImageStack))
+        print(Grabbed)
+        (Grabbed,Image) = Video.read()
+    return(ImageStack)
 
-def main(vid_name,Folder):
+
+
+def main(vid_name,Folder,StartFrame):
     global REFERENCESTARLOC
     global OBJECTLOC
     global REFERENCESTARAVGRADIUS
-    global OBJECTBACKAVGRADIUS
+    global OBJECTAVGRADIUS
     global OBJECTBACKGROUNDRADIUS
     global REFERENCEBACKGROUNDRADIUS
     global XFitParametersRef
@@ -281,12 +319,15 @@ def main(vid_name,Folder):
     global YFitParametersObj
     global CatalogMagnitude
     global Iteration
+    global ObjectMagValue 
 
     record = True
-    frame_no = -1
+    frame_no = 100
 
     vid = cv2.VideoCapture(vid_name)
-    (Grabbed,img) = vid.read()
+    vid.set(1,StartFrame); # Where frame_no is the frame you want
+    Grabbed, img = vid.read() # Read the frame
+    #(Grabbed,img) = vid.read()
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     blurred = cv2.GaussianBlur(img, (5, 5), 0)
@@ -300,13 +341,21 @@ def main(vid_name,Folder):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    print( REFERENCESTARLOC )
     REFERENCESTARLOC = MaxFinder(REFERENCESTARLOC[0], REFERENCESTARLOC[1], img)
     XFitParametersRef = GaussianFinder(REFERENCESTARLOC[0], img)
     YFitParametersRef = GaussianFinder(REFERENCESTARLOC[1], img)
     ReferenceMagValue = MagnitudeFinder(REFERENCESTARLOC, 
             GaussianFinder(REFERENCESTARLOC[0], img), 
             GaussianFinder(REFERENCESTARLOC[1], img), img)
+    XFitParameters = (0,0,0)
+
+    InstrumentalMagnitude = -2.5*np.log10(ReferenceMagValue)
+    CatalogMagnitude = -2.65
+    Offset = InstrumentalMagnitude - CatalogMagnitude 
+    #CatalogMagnitude = float(input('Enter catalog magnitude: '))
+    ####TEMP####
+    Offset = +12
+
 
     ObjectMagValueList = []
     CatalogList = []
@@ -314,45 +363,52 @@ def main(vid_name,Folder):
     Iteration = 1
     Round = 0
     while Grabbed == True:
-
+        
         (Grabbed, img) = vid.read()
         if Grabbed == False:
             break
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img) 
-
         XFitParametersObj = GaussianFinder(OBJECTLOC[0], img)
         YFitParametersObj = GaussianFinder(OBJECTLOC[1], img)
-
-        ObjectMagValue=MagnitudeFinder(OBJECTLOC,XFitParametersObj,YFitParametersObj, img)
+        ObjectMagValue=MagnitudeFinder(OBJECTLOC,XFitParametersObj,
+                YFitParametersObj, img)
         ObjectMagValueList.append(ObjectMagValue)
 
-        InstrumentalMagnitude = -2.5*np.log10(ReferenceMagValue)
-        CatalogMagnitude = -2.65
-        Offset = InstrumentalMagnitude - CatalogMagnitude 
-        #CatalogMagnitude = float(input('Enter catalog magnitude: '))
 
-        ####TEMP
-        Offset = 5
-
-        ObjectCatalogValue = 2.5*np.log10(ObjectMagValue) - Offset
+        ObjectCatalogValue = -2.5*np.log10(ObjectMagValue) - Offset
         CatalogList.append(ObjectCatalogValue)
-        # if Iteration > 145:
-            # plt.figure()
-            # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
-            # plt.xlabel('Frame')
-            # plt.ylabel('Pixel Values')
-            # plt.yticks([])
-            # plt.savefig(f"/home/luke/{Folder}/LightCurve.png", bbox_inches='tight')
+        if Iteration > 30:
+            plt.figure()
+            plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
+            plt.xlabel('Frame')
+            plt.ylabel('Pixel Value')
+            plt.yticks([])
+            plt.savefig(f"/home/luke/{Folder}/LightCurvePixel.png",
+            bbox_inches='tight')
 
-        PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTBACKAVGRADIUS, img,Folder)
+            plt.figure()
+            plt.plot(np.arange(0,len(CatalogList)),CatalogList)
+            plt.xlabel('Frame')
+            plt.ylabel('Magnitude')
+            plt.gca().invert_yaxis()
+            plt.savefig(f"/home/luke/{Folder}/LightCurve.png",
+            bbox_inches='tight')
+
+
+        PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
+                img,Folder)
+        if Iteration == 1:
+            PlottingCurve(XFitParametersRef, YFitParametersRef, REFERENCESTARAVGRADIUS, img,Folder)
         Iteration += 1
     plt.figure()
-    plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
+    # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
+    plt.plot(np.arange(0,len(CatalogList)),CatalogList)
     plt.xlabel('Frame')
     plt.ylabel('Pixel Values')
-    plt.yticks([])
+    # plt.yticks([])
+    plt.gca().invert_yaxis()
     plt.savefig(f"/home/luke/{Folder}/LightCurve.png", bbox_inches='tight')
 ##################################################
 # open with "python /path/to/script.py --image /path/to/picture.jpg"

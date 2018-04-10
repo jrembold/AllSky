@@ -7,6 +7,10 @@ import glob
 import Photometry 
 import os
 import shutil
+import time
+import datetime
+import numpy as np
+import cv2
 
 Ran = False
 
@@ -52,20 +56,19 @@ class GUI(tk.Frame):
         self.BlankCanvas.grid(row=1,column=CanvasWidth+1, 
                 rowspan=BlankCanvasHeight, columnspan=BlankCanvasWidth)
         
-        # VerticalCanvasWidth, VerticalCanvasHeight = 100,240
-        # self.VerticalCanvas = tk.Canvas(Frame1, 
-                # width=VerticalCanvasWidth, height=VerticalCanvasHeight, 
-                # background='white')
-        # self.VerticalCanvas.grid(row=1,
-                # column=BlankCanvasWidth+CanvasWidth+1, 
-                # rowspan=VerticalCanvasHeight, columnspan=VerticalCanvasWidth)
-
         ThresholdSliderLength,ThresholdSliderHeight = 360,15
         self.ThresholdSlider = tk.Scale(Frame1, from_=0, to=100, 
                 orient=HORIZONTAL, label='Threshold', sliderlength = 60, 
                 length=ThresholdSliderLength)
         self.ThresholdSlider.grid(row=CanvasHeight+1, column=1, 
                 columnspan=ThresholdSliderLength, rowspan=ThresholdSliderHeight)
+        
+        InitialSliderLength,InitialSliderHeight = 360,15
+        self.InitialSlider = tk.Scale(Frame1, from_=0, to=100, 
+                orient=HORIZONTAL, label='Initial Frame', sliderlength = 60, 
+                length=InitialSliderLength, command=self.VideoLength)
+        self.InitialSlider.grid(row=CanvasHeight+ThresholdSliderHeight+1, column=1, 
+                columnspan=InitialSliderLength, rowspan=InitialSliderHeight)
 
         RadioWidth,RadioHeight = 13,2
         v=tk.IntVar()
@@ -89,18 +92,6 @@ class GUI(tk.Frame):
         self.display = tk.Label(Frame1, image="")
         self.display.grid(row=1,column=450,rowspan=340,columnspan=340)
 
-        # img = tk.PhotoImage(file=path)
-        # self.label = tk.Label(Frame1,image=img,width=300,height=300)
-        # self.label.image = img
-        # self.label.grid(row=400,column=300)
-
-        # HorizCanvasWidth,HorizCanvasHeight = 240,100
-        # self.HorizCanvas = tk.Canvas(Frame1, width=HorizCanvasWidth, 
-                # height=HorizCanvasHeight, background='white')
-        # self.HorizCanvas.grid(row=VerticalCanvasHeight+1,column=511, 
-                # rowspan=HorizCanvasHeight, columnspan=HorizCanvasWidth)
-        
-
         self.LightCurve = tk.Label(Frame1, image="")
         self.LightCurve.grid(row=350,column=411,rowspan=240,columnspan=340)
 
@@ -113,43 +104,23 @@ class GUI(tk.Frame):
         self.FrameSlider.grid(row=600, column=650,
                 columnspan=FrameSliderLength, rowspan=FrameSliderHeight) 
 
-        self.openButton = tk.Button(Frame1, text='OPEN', width=7, 
-                height=1, command=self.openFile)
-        self.openButton.grid(row=0, column=1)
 
         self.QuitButton = tk.Button(Frame1, text="QUIT", 
                 command=Frame1.quit, width=7)
         self.QuitButton.grid(row=0,column=3)
 
-        # self.Text = tk.Button(Frame1, text=str(fname),command = open)
-        # self.Text.grid(row=0,column=400)
-
         self.FolderName = tk.Entry(Frame1)
-        self.FolderName.insert(0,'Event')
+        self.FolderName.insert(0,
+                f'{datetime.datetime.now().strftime("%y-%m-%d-%H-%M")}')
         self.FolderName.grid(row=0,column=5)
         
-        self.CreateButton = tk.Button(Frame1, text='CREATE', width=7, 
-                height=1, command=self.callback)
-        self.CreateButton.grid(row=0, column=6)
+        self.openButton = tk.Button(Frame1, text='OPEN', width=7, 
+                height=1, command=self.open)
+        self.openButton.grid(row=0, column=6)
 
-    # def open():
-        # Filename = fname
-
-        # self.RunButton = tk.Button(Frame1, text="RUN",width=7)
-        # self.RunButton.grid(row=0,column=2)
-
-    def openFile(self):
-        global fname
-        fname = tk.filedialog.askopenfilename(title='Choose a file')
-        print(FolderDirectory)
-        Photometry.main(fname,FolderDirectory)
-        lightcurvepath= f'/home/luke/{FolderDirectory}/LightCurve.png'
-        self.OG = Image.open(lightcurvepath)
-        ResizedOG = self.OG.resize((340,240),Image.ANTIALIAS)
-        self.IMG = ImageTk.PhotoImage(ResizedOG)
-        self.LightCurve.config(image=self.IMG) 
-        MaxFrameNumber= len(glob.glob("ObjectPlot*.png"))
-        self.FrameSlider.config(to=MaxFrameNumber)
+##################################################
+# Functions
+##################################################
 
     def FrameValue(self,event):
         FrameNumber = self.var.get()
@@ -159,14 +130,39 @@ class GUI(tk.Frame):
         self.img = ImageTk.PhotoImage(Resized)
         self.display.config(image=self.img)
 
-    def callback(self):
+    def VideoLength(self,event):
+        global StartFrame
+        StartFrame = self.var.get() 
+
+
+    def open(self):
         global FolderDirectory
+        global VideoName
+
+        # Folder Creation
         FolderDirectory = (self.FolderName.get())
         FolderPath = f'/home/luke/{FolderDirectory}'
         if os.path.exists(FolderPath):
             shutil.rmtree(FolderPath)
         os.makedirs(FolderPath)
-        print(FolderPath)
+        VideoName = tk.filedialog.askopenfilename(title='Choose a file')
+
+        ImageStack = Photometry.InitialRead(VideoName)
+        VideoSize = ImageStack.shape[2]
+        self.InitialSlider.config(to=VideoSize)
+
+        #Run Script
+        #Photometry.main(VideoName,FolderDirectory,StartFrame)
+
+        #Graphs
+        # lightcurvepath= f'/home/luke/{FolderDirectory}/LightCurve.png'
+        # self.OG = Image.open(lightcurvepath)
+        # ResizedOG = self.OG.resize((340,240),Image.ANTIALIAS)
+        # self.IMG = ImageTk.PhotoImage(ResizedOG)
+        # self.LightCurve.config(image=self.IMG) 
+        # MaxFrameNumber= len(glob.glob("ObjectPlot*.png"))
+        # self.FrameSlider.config(to=MaxFrameNumber)
+
 
 if __name__ == '__main__':
     GUI.main()
