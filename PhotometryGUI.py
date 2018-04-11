@@ -150,7 +150,7 @@ class GUI(tk.Frame):
 
     def PlotFrame(self,event):
         FrameNumber = self.var.get()
-        PlotPath= f'/home/luke/{self.FolderDirectory}/ObjectPlot{FrameNumber:03}.png'
+        PlotPath= f'Data/{self.FolderDirectory}/ObjectPlot{FrameNumber:03}.png'
         self.PlotImage = Image.open(PlotPath)
         self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
         self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
@@ -181,7 +181,7 @@ class GUI(tk.Frame):
     def open(self):
         # Folder Creation
         self.FolderDirectory = (self.FolderName.get())
-        FolderPath = f'/home/luke/{self.FolderDirectory}'
+        FolderPath = f'Data/{self.FolderDirectory}'
         if os.path.exists(FolderPath):
             shutil.rmtree(FolderPath)
         os.makedirs(FolderPath)
@@ -197,13 +197,13 @@ class GUI(tk.Frame):
     def run(self):
         Photometry.main(self.VideoName,self.FolderDirectory,self.FrameNo,
                 self.OBJECTLOC,self.REFERENCESTARLOC,self.ThresholdNumber)
-        lightcurvepath= f'/home/luke/{self.FolderDirectory}/LightCurve.png'
+        lightcurvepath= f'Data/{self.FolderDirectory}/LightCurve.png'
         self.OG = Image.open(lightcurvepath)
         ResizedOG = self.OG.resize((360,360),Image.ANTIALIAS)
         self.IMG = ImageTk.PhotoImage(ResizedOG)
         self.LightCurve.config(image=self.IMG)
         print('1111')
-        MaxFrameNumber= len(glob.glob(f"/home/luke/{self.FolderDirectory}/ObjectPlot*.png"))
+        MaxFrameNumber= len(glob.glob(f"Data/{self.FolderDirectory}/ObjectPlot*.png"))
         self.FrameSlider.config(to=MaxFrameNumber)
 
 if __name__ == '__main__':
