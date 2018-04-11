@@ -287,9 +287,9 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
     # if XMaxLoc == int(XFitParametersRef[1]):
         # plt.suptitle('Reference Star')
     if XFitParameters[0] == XFitParametersObj[0]:
-        plt.savefig(f'/home/luke/{Folder}/ObjectPlot{Iteration:03d}.png', bbox_inches='tight')
+        plt.savefig(f'Data/{Folder}/ObjectPlot{Iteration:03d}.png', bbox_inches='tight')
     if XFitParameters[0] == XFitParametersRef[0]:
-        plt.savefig(f'/home/luke/{Folder}/ReferencePlot.png', bbox_inches='tight')
+        plt.savefig(f'Data/{Folder}/ReferencePlot.png', bbox_inches='tight')
 
 ##################################################
 # Instructions for user
@@ -402,7 +402,7 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
             plt.xlabel('Frame')
             plt.ylabel('Magnitude')
             plt.gca().invert_yaxis()
-            plt.savefig(f"/home/luke/{Folder}/LightCurve.png",
+            plt.savefig(f"Data/{Folder}/LightCurve.png",
             bbox_inches='tight')
 
 
@@ -418,7 +418,7 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
     plt.ylabel('Pixel Values')
     # plt.yticks([])
     plt.gca().invert_yaxis()
-    plt.savefig(f"/home/luke/{Folder}/LightCurve.png", bbox_inches='tight')
+    plt.savefig(f"Data/{Folder}/LightCurve.png", bbox_inches='tight')
 ##################################################
 # open with "python /path/to/script.py --image /path/to/picture.jpg"
 ##################################################
