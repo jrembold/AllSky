@@ -47,12 +47,17 @@ def click(event, x, y, flags, param):
     elif event == cv2.EVENT_RBUTTONDOWN:
         OBJECTLOC = (x,y)
 
+def Threshold(theimage, ThresholdRatio):
+    threshold = cv2.threshold(theimage, ThresholdRatio, 255, cv2.THRESH_BINARY)[1]
+    return(threshold)
+
 def MaxFinder(X, Y, img):
     r = 10
     # Accessing array so Y values first
     subimg = img[Y-r:Y+r, X-r:X+r]
     blur = cv2.GaussianBlur(subimg, (5,5), 0)
-    thresh = cv2.threshold(blur, 10, 255, cv2.THRESH_BINARY)[1]
+    thresh = cv2.threshold(blur, 50, 255, cv2.THRESH_BINARY)[1]
+    thresh = Threshold(blur, THRESHOLDNUMBER)
     im2, contours, heir = cv2.findContours(thresh, cv2.RETR_TREE,
 	cv2.CHAIN_APPROX_SIMPLE)
 
@@ -300,19 +305,19 @@ def InitialRead(VideoName):
         Image = cv2.cvtColor(Image, cv2.COLOR_BGR2GRAY)
         ImageStack = np.dstack([ImageStack,Image])
         print(np.shape(ImageStack))
-        print(Grabbed)
         (Grabbed,Image) = Video.read()
     return(ImageStack)
 
 
 
-def main(vid_name,Folder,StartFrame):
+def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, ThresholdNumber):
     global REFERENCESTARLOC
     global OBJECTLOC
     global REFERENCESTARAVGRADIUS
     global OBJECTAVGRADIUS
     global OBJECTBACKGROUNDRADIUS
     global REFERENCEBACKGROUNDRADIUS
+    global THRESHOLDNUMBER
     global XFitParametersRef
     global YFitParametersRef
     global XFitParametersObj
@@ -323,6 +328,10 @@ def main(vid_name,Folder,StartFrame):
 
     record = True
     frame_no = 100
+        
+    REFERENCESTARLOC = referencestarlocation
+    OBJECTLOC = objectlocation
+    THRESHOLDNUMBER = ThresholdNumber
 
     vid = cv2.VideoCapture(vid_name)
     vid.set(1,StartFrame); # Where frame_no is the frame you want
@@ -334,12 +343,12 @@ def main(vid_name,Folder,StartFrame):
     Thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
 
 
-    img2 = img.copy()
-    cv2.namedWindow("window")
-    cv2.setMouseCallback("window", click)
-    cv2.imshow("window", img2)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # img2 = img.copy()
+    # cv2.namedWindow("window")
+    # cv2.setMouseCallback("window", click)
+    # cv2.imshow("window", img2)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     REFERENCESTARLOC = MaxFinder(REFERENCESTARLOC[0], REFERENCESTARLOC[1], img)
     XFitParametersRef = GaussianFinder(REFERENCESTARLOC[0], img)
@@ -379,14 +388,14 @@ def main(vid_name,Folder,StartFrame):
 
         ObjectCatalogValue = -2.5*np.log10(ObjectMagValue) - Offset
         CatalogList.append(ObjectCatalogValue)
-        if Iteration > 30:
-            plt.figure()
-            plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
-            plt.xlabel('Frame')
-            plt.ylabel('Pixel Value')
-            plt.yticks([])
-            plt.savefig(f"/home/luke/{Folder}/LightCurvePixel.png",
-            bbox_inches='tight')
+        if Iteration > 1:
+            # plt.figure()
+            # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
+            # plt.xlabel('Frame')
+            # plt.ylabel('Pixel Value')
+            # plt.yticks([])
+            # plt.savefig(f"/home/luke/{Folder}/LightCurvePixel.png",
+            # bbox_inches='tight')
 
             plt.figure()
             plt.plot(np.arange(0,len(CatalogList)),CatalogList)
