@@ -1,4 +1,4 @@
-##################################################
+#################################################
 #
 #
 # Identifying Objects & Their Magnitudes
@@ -20,7 +20,7 @@ from scipy.optimize import curve_fit
 import matplotlib.gridspec as gridspec
 import matplotlib
 
-
+END = False
 REFERENCESTARLOC = (0,0)
 OBJECTLOC = (0,0)
 OBJECTAVGRADIUS = 0
@@ -52,6 +52,8 @@ def Threshold(theimage, ThresholdRatio):
     return(threshold)
 
 def MaxFinder(X, Y, img):
+    global END
+
     r = 10
     # Accessing array so Y values first
     subimg = img[Y-r:Y+r, X-r:X+r]
@@ -62,16 +64,21 @@ def MaxFinder(X, Y, img):
 	cv2.CHAIN_APPROX_SIMPLE)
 
     areas = [cv2.contourArea(c) for c in contours]
+    print(areas)
+    if not areas:
+        END = True
+        print(END)
+        return
     max_idx = np.argmax(areas)
     cnt = contours[max_idx]
 
     M = cv2.moments(cnt)
-    M["m00"] != 0
-    cX = int(M["m10"] / M["m00"])
-    cY = int(M["m01"] / M["m00"])
-    MaxLocShifted = (X-r+cX, Y-r+cY)
-    # else:
-        # MaxLocShifted = (X-r,Y-r)
+    if M["m00"] != 0:
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        MaxLocShifted = (X-r+cX, Y-r+cY)
+    else:
+        MaxLocShifted = (X-r,Y-r)
     return MaxLocShifted 
 
 def Gaussian(x, a, x0, Sigma):
@@ -308,8 +315,6 @@ def InitialRead(VideoName):
         (Grabbed,Image) = Video.read()
     return(ImageStack)
 
-
-
 def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, ThresholdNumber):
     global REFERENCESTARLOC
     global OBJECTLOC
@@ -363,7 +368,8 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
     Offset = InstrumentalMagnitude - CatalogMagnitude 
     #CatalogMagnitude = float(input('Enter catalog magnitude: '))
     ####TEMP####
-    Offset = +12
+    Offset = -10
+
 
 
     ObjectMagValueList = []
@@ -378,7 +384,9 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
             break
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img) 
+        OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img)
+        if END == True:
+            break
         XFitParametersObj = GaussianFinder(OBJECTLOC[0], img)
         YFitParametersObj = GaussianFinder(OBJECTLOC[1], img)
         ObjectMagValue=MagnitudeFinder(OBJECTLOC,XFitParametersObj,
@@ -404,7 +412,7 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
             plt.gca().invert_yaxis()
             plt.savefig(f"Data/{Folder}/LightCurve.png",
             bbox_inches='tight')
-
+            plt.close()
 
         PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
                 img,Folder)

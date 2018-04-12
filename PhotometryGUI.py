@@ -79,7 +79,10 @@ class GUI(tk.Frame):
         self.FolderName.insert(0,
                 f'{datetime.datetime.now().strftime("%y-%m-%d-%H-%M")}')
         self.FolderName.pack(side=LEFT)
-        
+       
+        self.progress= ttk.Progressbar(Frame1, orient=HORIZONTAL, length=200, mode='determinate',maximum=100)
+        self.progress.pack(side=LEFT)
+
         ##################################################
         Frame2 = tk.Frame(self)
         Frame2.pack(fill=X) 
@@ -189,6 +192,7 @@ class GUI(tk.Frame):
         self.ImageStack = Photometry.InitialRead(self.VideoName)
         VideoSize = self.ImageStack.shape[2]
         self.InitialSlider.config(to=VideoSize-1)
+        self.progress.config(maximum=VideoSize)
         self.CamView = Image.fromarray(self.ImageStack[:,:,0])
         CamView = self.CamView.resize((640,480),Image.ANTIALIAS)
         self.CamView = ImageTk.PhotoImage(CamView)
