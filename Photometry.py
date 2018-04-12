@@ -295,9 +295,9 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
     # if XMaxLoc == int(XFitParametersRef[1]):
         # plt.suptitle('Reference Star')
     if XFitParameters[0] == XFitParametersObj[0]:
-        plt.savefig(f'Data/{Folder}/ObjectPlot{Iteration:03d}.png', bbox_inches='tight')
+        plt.savefig(f'{Folder}/ObjectPlot{Iteration:03d}.png', bbox_inches='tight')
     if XFitParameters[0] == XFitParametersRef[0]:
-        plt.savefig(f'Data/{Folder}/ReferencePlot.png', bbox_inches='tight')
+        plt.savefig(f'{Folder}/ReferencePlot.png', bbox_inches='tight')
 
 def InitialRead(VideoName):
     Array = np.array([],ndmin=3)
@@ -374,7 +374,7 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
     CatalogList = []
     Instrument = []
     Iteration = 1
-    Round = 0
+    print(Folder)
     while Grabbed == True:
         
         (Grabbed, img) = vid.read()
@@ -393,25 +393,22 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
             ObjectMagValue = 0
         ObjectMagValueList.append(ObjectMagValue)
 
-
         ObjectCatalogValue = -2.5*np.log10(ObjectMagValue) - Offset
         CatalogList.append(ObjectCatalogValue)
         if Iteration > 1:
-            plt.figure()
-            plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
-            plt.xlabel('Frame')
-            plt.ylabel('Pixel Value')
-            plt.savefig(f"Data/{Folder}/LightCurvePixel.png",
-            bbox_inches='tight')
-            plt.close()
+            # plt.figure()
+            # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
+            # plt.xlabel('Frame')
+            # plt.ylabel('Pixel Value')
+            # plt.savefig(f"{Folder}/LightCurvePixel.png", bbox_inches='tight')
+            # plt.close()
 
             plt.figure()
             plt.plot(np.arange(0,len(CatalogList)),CatalogList)
             plt.xlabel('Frame')
             plt.ylabel('Magnitude')
             plt.gca().invert_yaxis()
-            plt.savefig(f"Data/{Folder}/LightCurve.png",
-            bbox_inches='tight')
+            plt.savefig(f"{Folder}/LightCurve.png", bbox_inches='tight')
             plt.close()
 
         PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
@@ -426,7 +423,7 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
     plt.ylabel('Pixel Values')
     # plt.yticks([])
     plt.gca().invert_yaxis()
-    plt.savefig(f"Data/{Folder}/LightCurve.png", bbox_inches='tight')
+    plt.savefig(f"{Folder}/LightCurve.png", bbox_inches='tight')
 ##################################################
 # open with "python /path/to/script.py --image /path/to/picture.jpg"
 ##################################################

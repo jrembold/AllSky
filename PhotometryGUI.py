@@ -163,7 +163,7 @@ class GUI(tk.Frame):
 
     def PlotFrame(self,event):
         FrameNumber = self.var.get()
-        PlotPath= f'Data/{self.FolderDirectory}/ObjectPlot{FrameNumber:03}.png'
+        PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
         self.PlotImage = Image.open(PlotPath)
         self.PlotImage = self.PlotImage.resize((480,480),Image.ANTIALIAS)
         self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
@@ -172,10 +172,12 @@ class GUI(tk.Frame):
     def ReferenceCoordinates(self,event):
         self.ReferenceLabel.configure(text=f"Reference: ({event.x},{event.y})")
         self.REFERENCESTARLOC = (event.x,event.y)
+        self.ReferenceLabel.configure(bg ='white',fg = 'black')
 
     def ObjectCoordinates(self,event):
         self.ObjectLabel.configure(text=f"Object: ({event.x},{event.y})")
         self.OBJECTLOC = (event.x,event.y)
+        self.ObjectLabel.configure(bg ='white',fg ='black')
 
     def VideoLength(self,event):
         self.FrameNo = self.slidervar.get()
@@ -191,14 +193,22 @@ class GUI(tk.Frame):
         self.CamView = ImageTk.PhotoImage(self.CamView)
         self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
 
+
     def open(self):
         # Folder Creation
+
+        self.VideoName = tk.filedialog.askopenfilename(initialdir = 'Data')
+        self.VideoPath = '/'.join(self.VideoName.split('/')[:-1])
+
         self.FolderDirectory = (self.FolderName.get())
-        FolderPath = f'Data/{self.FolderDirectory}'
-        if os.path.exists(FolderPath):
-            shutil.rmtree(FolderPath)
-        os.makedirs(FolderPath)
-        self.VideoName = tk.filedialog.askopenfilename(initialdir = 'Data',title='Choose a file')
+        self.FolderPath = f'{self.VideoPath}/{self.FolderDirectory}'
+        if os.path.exists(self.FolderPath):
+            shutil.rmtree(self.FolderPath)
+        os.makedirs(self.FolderPath)
+        print(self.FolderPath)
+        print('yesss')
+
+
         self.ImageStack = Photometry.InitialRead(self.VideoName)
         VideoSize = self.ImageStack.shape[2]
         self.InitialSlider.config(to=VideoSize-1)
@@ -212,15 +222,15 @@ class GUI(tk.Frame):
 
     def run(self):
         # self.runButton.configure(text="Running")
-        Photometry.main(self.VideoName,self.FolderDirectory,self.FrameNo,
+        Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
                 self.OBJECTLOC,self.REFERENCESTARLOC,self.ThresholdNumber)
-        lightcurvepath= f'Data/{self.FolderDirectory}/LightCurve.png'
+        lightcurvepath= f'{self.FolderPath}/LightCurve.png'
         self.OG = Image.open(lightcurvepath)
-        ResizedOG = self.OG.resize((360,360),Image.ANTIALIAS)
+        ResizedOG = self.OG.resize((480,360),Image.ANTIALIAS)
         self.IMG = ImageTk.PhotoImage(ResizedOG)
         self.LightCurve.config(image=self.IMG)
         self.runButton.configure(bg = 'white', fg='black')
-        MaxFrameNumber= len(glob.glob(f"Data/{self.FolderDirectory}/ObjectPlot*.png"))
+        MaxFrameNumber= len(glob.glob(f"{self.FolderPath}/ObjectPlot*.png"))
         self.FrameSlider.config(to=MaxFrameNumber)
         # self.openButton.configure(bg ='black', fg='white')
         self.restartButton.configure(bg ='firebrick4')
