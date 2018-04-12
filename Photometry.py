@@ -64,15 +64,16 @@ def MaxFinder(X, Y, img):
 	cv2.CHAIN_APPROX_SIMPLE)
 
     areas = [cv2.contourArea(c) for c in contours]
-    print(areas)
     if not areas:
         END = True
-        print(END)
         return
     max_idx = np.argmax(areas)
     cnt = contours[max_idx]
 
     M = cv2.moments(cnt)
+    if M["m00"] == 0:
+        M["m00"] = 1
+
     if M["m00"] != 0:
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
@@ -298,12 +299,10 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
     if XFitParameters[0] == XFitParametersRef[0]:
         plt.savefig(f'Data/{Folder}/ReferencePlot.png', bbox_inches='tight')
 
-##################################################
-# Instructions for user
-##################################################
 def InitialRead(VideoName):
     Array = np.array([],ndmin=3)
     Video = cv2.VideoCapture(VideoName)
+    print(VideoName)
     Grabbed, Image = Video.read()
     Image = cv2.cvtColor(Image, cv2.COLOR_BGR2GRAY)
     ImageStack = Image
@@ -311,7 +310,6 @@ def InitialRead(VideoName):
     while Grabbed == True:
         Image = cv2.cvtColor(Image, cv2.COLOR_BGR2GRAY)
         ImageStack = np.dstack([ImageStack,Image])
-        print(np.shape(ImageStack))
         (Grabbed,Image) = Video.read()
     return(ImageStack)
 
@@ -391,19 +389,21 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
         YFitParametersObj = GaussianFinder(OBJECTLOC[1], img)
         ObjectMagValue=MagnitudeFinder(OBJECTLOC,XFitParametersObj,
                 YFitParametersObj, img)
+        if ObjectMagValue < 0:
+            ObjectMagValue = 0
         ObjectMagValueList.append(ObjectMagValue)
 
 
         ObjectCatalogValue = -2.5*np.log10(ObjectMagValue) - Offset
         CatalogList.append(ObjectCatalogValue)
         if Iteration > 1:
-            # plt.figure()
-            # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
-            # plt.xlabel('Frame')
-            # plt.ylabel('Pixel Value')
-            # plt.yticks([])
-            # plt.savefig(f"/home/luke/{Folder}/LightCurvePixel.png",
-            # bbox_inches='tight')
+            plt.figure()
+            plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
+            plt.xlabel('Frame')
+            plt.ylabel('Pixel Value')
+            plt.savefig(f"Data/{Folder}/LightCurvePixel.png",
+            bbox_inches='tight')
+            plt.close()
 
             plt.figure()
             plt.plot(np.arange(0,len(CatalogList)),CatalogList)
