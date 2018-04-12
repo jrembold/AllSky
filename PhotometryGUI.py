@@ -41,7 +41,7 @@ class GUI(tk.Frame):
 
     def createwidgets(self):
         self.Plotted = False
-
+        self.FrameNo = 1
         # Frame01 = tk.Frame(self)
         # Frame01.pack(fill=X)
 
