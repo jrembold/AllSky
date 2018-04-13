@@ -45,6 +45,7 @@ class GUI(tk.Frame):
         self.ReferenceClick = False
         self.ThresholdToggle = False
         self.FrameNo = 1
+        self.ThresholdCompleted = False
         # Frame01 = tk.Frame(self)
         # Frame01.pack(fill=X)
 
@@ -193,7 +194,7 @@ class GUI(tk.Frame):
         self.REFERENCESTARLOC = (event.x,event.y)
         self.ReferenceLabel.configure(bg ='white',fg = 'black')
         self.ReferenceClick = True
-        if self.ObjectClick == True:
+        if self.ObjectClick == True and self.ThresholdCompleted == True:
             self.runButton.config(state='normal')
 
     def ObjectCoordinates(self,event):
@@ -201,7 +202,7 @@ class GUI(tk.Frame):
         self.OBJECTLOC = (event.x,event.y)
         self.ObjectLabel.configure(bg ='white',fg ='black')
         self.ObjectClick = True
-        if self.ReferenceClick == True:
+        if self.ReferenceClick == True and self.ThresholdCompleted == True:
             self.runButton.config(state='normal')
             
     def ThresholdRadio(self):
@@ -217,6 +218,7 @@ class GUI(tk.Frame):
             self.CamView = ImageTk.PhotoImage(self.CamView)
             self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
         if self.ThresholdToggle == True:
+            self.ThresholdCompleted = True
             self.ThresholdNumber = self.thresholdvar.get()
             ThresholdView = Photometry.Threshold(self.ImageStack[:,:,self.FrameNo], 
                     self.ThresholdNumber)
@@ -232,6 +234,7 @@ class GUI(tk.Frame):
         self.CamView = Image.fromarray(ThresholdView)
         self.CamView = ImageTk.PhotoImage(self.CamView)
         self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
+        self.ThresholdCompleted = True
 
     def open(self):
         self.VideoName = tk.filedialog.askopenfilename(initialdir = 'Data')
