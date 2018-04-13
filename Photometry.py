@@ -235,17 +235,17 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
                 np.arange(-PlotRange+OBJECTLOC[1],PlotRange+OBJECTLOC[1],1),
                 label='Gaussian Fit',color='red')
         ax2.set_xlabel('Pixel Value')
-    # if YMaxLoc == int(YFitParametersRef[1]):
-        # ax2.plot(getPlotSlice(REFERENCESTARLOC[0],REFERENCESTARLOC[1],
-            # 'y', PlotRange),
-                # np.arange(-PlotRange+REFERENCESTARLOC[1],
-                    # PlotRange+REFERENCESTARLOC[1],1),
-                # label='Data')
-        # ax2.plot((Gaussian(np.arange(-PlotRange+REFERENCESTARLOC[1],
-            # PlotRange+REFERENCESTARLOC[1],1),*YFitParameters)),
-                # np.arange(-PlotRange+REFERENCESTARLOC[1],
-                    # PlotRange+REFERENCESTARLOC[1],1),
-                # label='Gaussian Fit')
+    if YMaxLoc == int(YFitParametersRef[1]):
+        ax2.plot(getPlotSlice(REFERENCESTARLOC[0],REFERENCESTARLOC[1],
+            'y', PlotRange),
+                np.arange(-PlotRange+REFERENCESTARLOC[1],
+                    PlotRange+REFERENCESTARLOC[1],1),
+                label='Data')
+        ax2.plot((Gaussian(np.arange(-PlotRange+REFERENCESTARLOC[1],
+            PlotRange+REFERENCESTARLOC[1],1),*YFitParameters)),
+                np.arange(-PlotRange+REFERENCESTARLOC[1],
+                    PlotRange+REFERENCESTARLOC[1],1),
+                label='Gaussian Fit')
     ax2.yaxis.set_visible(False)
     ax2.xaxis.tick_top()
     ax2.xaxis.set_label_position('top')
@@ -260,16 +260,16 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
                     PlotRange+OBJECTLOC[0]),*XFitParameters),
                 label='Gaussian Fit',color='red')
         ax3.set_ylabel('Pixel Value')
-    # if XMaxLoc == int(XFitParametersRef[1]):
-        # YMaxLoc = REFERENCESTARLOC[1]
-        # XMaxLoc = REFERENCESTARLOC[0]
-        # ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
-                # getPlotSlice(XMaxLoc, YMaxLoc, 'x', PlotRange),
-                # label='Data')
-        # ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), 
-                # Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
-                    # *XFitParameters),
-                # label='Gaussian Fit')
+    if XMaxLoc == int(XFitParametersRef[1]):
+        YMaxLoc = REFERENCESTARLOC[1]
+        XMaxLoc = REFERENCESTARLOC[0]
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
+                getPlotSlice(XMaxLoc, YMaxLoc, 'x', PlotRange),
+                label='Data')
+        ax3.plot(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc), 
+                Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
+                    *XFitParameters),
+                label='Gaussian Fit')
     # ax3.legend(bbox_to_anchor=(0.,-.2, 1., .102), loc=3,ncol=2, borderaxespad=0.)
     ax3.invert_yaxis()
     ax3.xaxis.set_visible(False)
@@ -295,9 +295,11 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
     # if XMaxLoc == int(XFitParametersRef[1]):
         # plt.suptitle('Reference Star')
     if XFitParameters[0] == XFitParametersObj[0]:
-        plt.savefig(f'{Folder}/ObjectPlot{Iteration:03d}.png', bbox_inches='tight')
+        plt.savefig(f'{Folder}/ObjectPlot{Iteration:03d}.png', 
+                bbox_inches='tight')
     if XFitParameters[0] == XFitParametersRef[0]:
-        plt.savefig(f'{Folder}/ReferencePlot.png', bbox_inches='tight')
+        plt.savefig(f'{Folder}/ReferencePlot{Iteration:03d}.png', 
+                bbox_inches='tight')
 
 def InitialRead(VideoName):
     Array = np.array([],ndmin=3)
@@ -354,28 +356,37 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
-    REFERENCESTARLOC = MaxFinder(REFERENCESTARLOC[0], REFERENCESTARLOC[1], img)
-    XFitParametersRef = GaussianFinder(REFERENCESTARLOC[0], img)
-    YFitParametersRef = GaussianFinder(REFERENCESTARLOC[1], img)
-    ReferenceMagValue = MagnitudeFinder(REFERENCESTARLOC, 
-            GaussianFinder(REFERENCESTARLOC[0], img), 
-            GaussianFinder(REFERENCESTARLOC[1], img), img)
-    XFitParameters = (0,0,0)
+    # REFERENCESTARLOC = MaxFinder(REFERENCESTARLOC[0], REFERENCESTARLOC[1], img)
+    # XFitParametersRef = GaussianFinder(REFERENCESTARLOC[0], img)
+    # YFitParametersRef = GaussianFinder(REFERENCESTARLOC[1], img)
+    # ReferenceMagValue = MagnitudeFinder(REFERENCESTARLOC, 
+            # GaussianFinder(REFERENCESTARLOC[0], img), 
+            # GaussianFinder(REFERENCESTARLOC[1], img), img)
+    # XFitParameters = (0,0,0)
 
-    InstrumentalMagnitude = -2.5*np.log10(ReferenceMagValue)
-    Offset = InstrumentalMagnitude - CatalogMagnitude 
 
     ObjectMagValueList = []
+    ReferenceMagValueList = []
     CatalogList = []
     Instrument = []
     Iteration = 1
-    print(Folder)
     while Grabbed == True:
-        
+
         (Grabbed, img) = vid.read()
         if Grabbed == False:
             break
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        REFERENCESTARLOC = MaxFinder(REFERENCESTARLOC[0], 
+                REFERENCESTARLOC[1], img)
+        if END == True: 
+            break
+        XFitParametersRef = GaussianFinder(REFERENCESTARLOC[0], img)
+        YFitParametersRef = GaussianFinder(REFERENCESTARLOC[1], img)
+        ReferenceMagValue = MagnitudeFinder(REFERENCESTARLOC, 
+            GaussianFinder(REFERENCESTARLOC[0], img), 
+            GaussianFinder(REFERENCESTARLOC[1], img), img)
+        ReferenceMagValueList.append(ReferenceMagValue)
 
         OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img)
         if END == True:
@@ -388,14 +399,22 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
             ObjectMagValue = 0
         ObjectMagValueList.append(ObjectMagValue)
 
-        ObjectCatalogValue = -2.5*np.log10(ObjectMagValue) - Offset
-        CatalogList.append(ObjectCatalogValue)
-
         PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
                 img,Folder)
-        if Iteration == 1:
-            PlottingCurve(XFitParametersRef, YFitParametersRef, REFERENCESTARAVGRADIUS, img,Folder)
+        PlottingCurve(XFitParametersRef, YFitParametersRef, 
+                REFERENCESTARAVGRADIUS, img,Folder)
         Iteration += 1
+
+    ReferenceMagValue = np.mean(ReferenceMagValueList)
+
+    InstrumentalMagnitude = -2.5*np.log10(ReferenceMagValue)
+    Offset = InstrumentalMagnitude - CatalogMagnitude 
+
+    for i in ObjectMagValueList:
+        ObjectCatalogValue = -2.5*np.log10(i) - Offset
+        CatalogList.append(ObjectCatalogValue)
+
+
     plt.figure()
     # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
     plt.plot(np.arange(0,len(CatalogList)),CatalogList)

@@ -46,6 +46,7 @@ class GUI(tk.Frame):
         self.ThresholdToggle = False
         self.FrameNo = 1
         self.ThresholdCompleted = False
+        self.ChoiceToggle = False
         # Frame01 = tk.Frame(self)
         # Frame01.pack(fill=X)
 
@@ -105,12 +106,13 @@ class GUI(tk.Frame):
         self.NameButton = tk.Button(Frame2, text="POSITION", width=7)
         self.NameButton.pack(side=LEFT)
 
-        v=tk.IntVar()
+        self.Choice=tk.IntVar()
         self.ObjectLabel = tk.Radiobutton(Frame2, text="Object: ( X , Y )", 
-                variable=v, value=0, indicatoron=0)
+                variable=self.Choice, value=0, indicatoron=0,
+                command=self.ObjectChoice)
         self.ReferenceLabel = tk.Radiobutton(Frame2, 
-                text="Reference Star: ( X, Y )", variable=v, value=1, 
-                indicatoron=0)
+                text="Reference Star: ( X, Y )", variable=self.Choice, value=1, 
+                indicatoron=0,command=self.ObjectChoice)
         self.ObjectLabel.pack(side=LEFT,fill=Y)
         self.ReferenceLabel.pack(side=LEFT,fill=Y)
 
@@ -123,12 +125,14 @@ class GUI(tk.Frame):
         Frame2_1 = tk.Frame(self)
         Frame2_1.pack(fill=X) 
         ##################################################
+        self.ThresholdButton = tk.Button(Frame2_1, text="THRESHOLD", width=7)
+        self.ThresholdButton.pack(side=LEFT)
 
         self.ThresholdVariable=tk.IntVar()
-        self.ThresholdOn = tk.Radiobutton(Frame2_1, text="Threshold On", 
+        self.ThresholdOn = tk.Radiobutton(Frame2_1, text="ON", 
                 variable=self.ThresholdVariable, value=1, indicatoron=0, command=self.ThresholdRadio)
         self.ThresholdOff = tk.Radiobutton(Frame2_1, 
-                text="Threshold Off", variable=self.ThresholdVariable, value=0, 
+                text="OFF", variable=self.ThresholdVariable, value=0, 
                 indicatoron=0, command=self.ThresholdRadio)
         self.ThresholdOn.pack(side=LEFT,fill=Y)
         self.ThresholdOff.pack(side=LEFT,fill=Y)
@@ -183,11 +187,20 @@ class GUI(tk.Frame):
 
     def PlotFrame(self,event):
         FrameNumber = self.var.get()
-        PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
-        self.PlotImage = Image.open(PlotPath)
-        self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
-        self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
-        self.display.config(image=self.PlotImage)
+        if self.ChoiceToggle == False:
+            print('False')
+            PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
+            self.PlotImage = Image.open(PlotPath)
+            self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
+            self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
+            self.display.config(image=self.PlotImage)
+        if self.ChoiceToggle == True:
+            print('True')
+            PlotPath= f'{self.FolderPath}/ReferencePlot{FrameNumber:03}.png'
+            self.PlotImage = Image.open(PlotPath)
+            self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
+            self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
+            self.display.config(image=self.PlotImage)
 
     def ReferenceCoordinates(self,event):
         self.ReferenceLabel.configure(text=f"Reference: ({event.x},{event.y})")
@@ -205,12 +218,21 @@ class GUI(tk.Frame):
         if self.ReferenceClick == True and self.ThresholdCompleted == True:
             self.runButton.config(state='normal')
             
+    def ObjectChoice(self):
+        if self.Choice.get() == 0:
+            print('0')
+            self.ChoiceToggle = False
+        if self.Choice.get() == 1:
+            print('1')
+            self.ChoiceToggle = True
+
     def ThresholdRadio(self):
         self.ThresholdSelection = self.ThresholdVariable.get()
         if self.ThresholdSelection == 0:
             self.ThresholdToggle = False
         if self.ThresholdSelection == 1:
             self.ThresholdToggle = True
+
     def VideoLength(self,event):
         self.FrameNo = self.slidervar.get()
         if self.ThresholdToggle == False:
