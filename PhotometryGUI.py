@@ -43,6 +43,7 @@ class GUI(tk.Frame):
         self.Plotted = False
         self.ObjectClick = False
         self.ReferenceClick = False
+        self.ThresholdToggle = False
         self.FrameNo = 1
         # Frame01 = tk.Frame(self)
         # Frame01.pack(fill=X)
@@ -116,6 +117,22 @@ class GUI(tk.Frame):
         self.CatalogValue.insert(0,'0')
         self.CatalogValue.pack(side=LEFT, fill=Y)
 
+
+        ##################################################
+        Frame2_1 = tk.Frame(self)
+        Frame2_1.pack(fill=X) 
+        ##################################################
+
+        self.ThresholdVariable=tk.IntVar()
+        self.ThresholdOn = tk.Radiobutton(Frame2_1, text="Threshold On", 
+                variable=self.ThresholdVariable, value=1, indicatoron=0, command=self.ThresholdRadio)
+        self.ThresholdOff = tk.Radiobutton(Frame2_1, 
+                text="Threshold Off", variable=self.ThresholdVariable, value=0, 
+                indicatoron=0, command=self.ThresholdRadio)
+        self.ThresholdOn.pack(side=LEFT,fill=Y)
+        self.ThresholdOff.pack(side=LEFT,fill=Y)
+
+
         ##################################################
         Frame3 = tk.Frame(self)
         Frame3.pack(fill=X) 
@@ -187,12 +204,26 @@ class GUI(tk.Frame):
         if self.ReferenceClick == True:
             self.runButton.config(state='normal')
             
-
+    def ThresholdRadio(self):
+        self.ThresholdSelection = self.ThresholdVariable.get()
+        if self.ThresholdSelection == 0:
+            self.ThresholdToggle = False
+        if self.ThresholdSelection == 1:
+            self.ThresholdToggle = True
     def VideoLength(self,event):
         self.FrameNo = self.slidervar.get()
-        self.CamView = Image.fromarray(self.ImageStack[:,:,self.FrameNo])
-        self.CamView = ImageTk.PhotoImage(self.CamView)
-        self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
+        if self.ThresholdToggle == False:
+            self.CamView = Image.fromarray(self.ImageStack[:,:,self.FrameNo])
+            self.CamView = ImageTk.PhotoImage(self.CamView)
+            self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
+        if self.ThresholdToggle == True:
+            self.ThresholdNumber = self.thresholdvar.get()
+            ThresholdView = Photometry.Threshold(self.ImageStack[:,:,self.FrameNo], 
+                    self.ThresholdNumber)
+            self.CamView = Image.fromarray(ThresholdView)
+            self.CamView = ImageTk.PhotoImage(self.CamView)
+            self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
+
     
     def Threshold(self,event):
         self.ThresholdNumber = self.thresholdvar.get()
