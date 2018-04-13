@@ -185,7 +185,7 @@ class GUI(tk.Frame):
         FrameNumber = self.var.get()
         PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
         self.PlotImage = Image.open(PlotPath)
-        self.PlotImage = self.PlotImage.resize((480,480),Image.ANTIALIAS)
+        self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
         self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
         self.display.config(image=self.PlotImage)
 
@@ -228,6 +228,7 @@ class GUI(tk.Frame):
 
     
     def Threshold(self,event):
+        self.ThresholdToggle = True
         self.ThresholdNumber = self.thresholdvar.get()
         ThresholdView = Photometry.Threshold(self.ImageStack[:,:,self.FrameNo], 
                 self.ThresholdNumber)
@@ -263,7 +264,7 @@ class GUI(tk.Frame):
                 self.OBJECTLOC,self.REFERENCESTARLOC,self.ThresholdNumber,self.Catalog)
         lightcurvepath= f'{self.FolderPath}/LightCurve.png'
         self.OG = Image.open(lightcurvepath)
-        ResizedOG = self.OG.resize((480,360),Image.ANTIALIAS)
+        ResizedOG = self.OG.resize((360,240),Image.ANTIALIAS)
         self.IMG = ImageTk.PhotoImage(ResizedOG)
         self.LightCurve.config(image=self.IMG)
         self.runButton.configure(bg = 'white', fg='black')
@@ -274,7 +275,7 @@ class GUI(tk.Frame):
         FrameNumber = self.var.get()
         PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
         self.PlotImage = Image.open(PlotPath)
-        self.PlotImage = self.PlotImage.resize((480,480),Image.ANTIALIAS)
+        self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
         self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
         self.display.config(image=self.PlotImage)
 
