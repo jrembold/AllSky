@@ -41,6 +41,8 @@ class GUI(tk.Frame):
 
     def createwidgets(self):
         self.Plotted = False
+        self.ObjectClick = False
+        self.ReferenceClick = False
         self.FrameNo = 1
         # Frame01 = tk.Frame(self)
         # Frame01.pack(fill=X)
@@ -66,21 +68,17 @@ class GUI(tk.Frame):
         ##################################################
         self.FolderName = tk.Entry(Frame1)
         self.FolderName.insert(0,
-                f'{datetime.datetime.now().strftime("%y-%m-%d-%H-%M")}')
+                f'{datetime.datetime.now().strftime("%Y%m%d_%H%M")}')
         self.FolderName.pack(side=LEFT, fill=Y)
 
         self.runButton = tk.Button(Frame1, text='RUN', width=7, 
-                height=1, command=self.run, bg='black')
+                height=1, command=self.run, bg='black',state=DISABLED)
         self.runButton.pack(side=LEFT)
 
         self.openButton = tk.Button(Frame1, text='OPEN', width=7, 
                 height=1, command=self.open, bg='black')
         self.openButton.pack(side=LEFT)
        
-        # self.progress= ttk.Progressbar(Frame1, orient=HORIZONTAL, 
-        # length=200, mode='determinate',maximum=100)
-        # self.progress.pack(side=LEFT)
-
         # self.ProgressLabel = tk.Button(Frame1, text="Not Started")
         # self.ProgressLabel.pack(side=LEFT)
 
@@ -113,6 +111,10 @@ class GUI(tk.Frame):
                 indicatoron=0)
         self.ObjectLabel.pack(side=LEFT,fill=Y)
         self.ReferenceLabel.pack(side=LEFT,fill=Y)
+
+        self.CatalogValue = tk.Entry(Frame2)
+        self.CatalogValue.insert(0,'0')
+        self.CatalogValue.pack(side=LEFT, fill=Y)
 
         ##################################################
         Frame3 = tk.Frame(self)
@@ -173,11 +175,18 @@ class GUI(tk.Frame):
         self.ReferenceLabel.configure(text=f"Reference: ({event.x},{event.y})")
         self.REFERENCESTARLOC = (event.x,event.y)
         self.ReferenceLabel.configure(bg ='white',fg = 'black')
+        self.ReferenceClick = True
+        if self.ObjectClick == True:
+            self.runButton.config(state='normal')
 
     def ObjectCoordinates(self,event):
         self.ObjectLabel.configure(text=f"Object: ({event.x},{event.y})")
         self.OBJECTLOC = (event.x,event.y)
         self.ObjectLabel.configure(bg ='white',fg ='black')
+        self.ObjectClick = True
+        if self.ReferenceClick == True:
+            self.runButton.config(state='normal')
+            
 
     def VideoLength(self,event):
         self.FrameNo = self.slidervar.get()
@@ -193,26 +202,18 @@ class GUI(tk.Frame):
         self.CamView = ImageTk.PhotoImage(self.CamView)
         self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
 
-
     def open(self):
-        # Folder Creation
-
         self.VideoName = tk.filedialog.askopenfilename(initialdir = 'Data')
         self.VideoPath = '/'.join(self.VideoName.split('/')[:-1])
-
         self.FolderDirectory = (self.FolderName.get())
         self.FolderPath = f'{self.VideoPath}/{self.FolderDirectory}'
         if os.path.exists(self.FolderPath):
             shutil.rmtree(self.FolderPath)
         os.makedirs(self.FolderPath)
-        print(self.FolderPath)
-        print('yesss')
-
 
         self.ImageStack = Photometry.InitialRead(self.VideoName)
         VideoSize = self.ImageStack.shape[2]
         self.InitialSlider.config(to=VideoSize-1)
-        # self.progress.config(maximum=VideoSize)
         self.CamView = Image.fromarray(self.ImageStack[:,:,0])
         # CamView = self.CamView.resize((640,480),Image.ANTIALIAS)
         self.CamView = ImageTk.PhotoImage(self.CamView)
@@ -221,9 +222,11 @@ class GUI(tk.Frame):
         # self.runButton.configure(bg='black',fg='white')
 
     def run(self):
+        self.Catalog = self.CatalogValue.get()
+        print(self.Catalog)
         # self.runButton.configure(text="Running")
         Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
-                self.OBJECTLOC,self.REFERENCESTARLOC,self.ThresholdNumber)
+                self.OBJECTLOC,self.REFERENCESTARLOC,self.ThresholdNumber,self.Catalog)
         lightcurvepath= f'{self.FolderPath}/LightCurve.png'
         self.OG = Image.open(lightcurvepath)
         ResizedOG = self.OG.resize((480,360),Image.ANTIALIAS)
@@ -232,8 +235,14 @@ class GUI(tk.Frame):
         self.runButton.configure(bg = 'white', fg='black')
         MaxFrameNumber= len(glob.glob(f"{self.FolderPath}/ObjectPlot*.png"))
         self.FrameSlider.config(to=MaxFrameNumber)
-        # self.openButton.configure(bg ='black', fg='white')
         self.restartButton.configure(bg ='firebrick4')
+
+        FrameNumber = self.var.get()
+        PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
+        self.PlotImage = Image.open(PlotPath)
+        self.PlotImage = self.PlotImage.resize((480,480),Image.ANTIALIAS)
+        self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
+        self.display.config(image=self.PlotImage)
 
     def restart(self):
         python = sys.executable

@@ -313,7 +313,7 @@ def InitialRead(VideoName):
         (Grabbed,Image) = Video.read()
     return(ImageStack)
 
-def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, ThresholdNumber):
+def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, ThresholdNumber,TheCatalogMagnitude):
     global REFERENCESTARLOC
     global OBJECTLOC
     global REFERENCESTARAVGRADIUS
@@ -331,7 +331,8 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
 
     record = True
     frame_no = 100
-        
+    CatalogMagnitude = int(TheCatalogMagnitude) #parameter cant be global    
+
     REFERENCESTARLOC = referencestarlocation
     OBJECTLOC = objectlocation
     THRESHOLDNUMBER = ThresholdNumber
@@ -362,13 +363,7 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
     XFitParameters = (0,0,0)
 
     InstrumentalMagnitude = -2.5*np.log10(ReferenceMagValue)
-    CatalogMagnitude = -2.65
     Offset = InstrumentalMagnitude - CatalogMagnitude 
-    #CatalogMagnitude = float(input('Enter catalog magnitude: '))
-    ####TEMP####
-    Offset = -10
-
-
 
     ObjectMagValueList = []
     CatalogList = []
@@ -395,21 +390,6 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
 
         ObjectCatalogValue = -2.5*np.log10(ObjectMagValue) - Offset
         CatalogList.append(ObjectCatalogValue)
-        if Iteration > 1:
-            # plt.figure()
-            # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
-            # plt.xlabel('Frame')
-            # plt.ylabel('Pixel Value')
-            # plt.savefig(f"{Folder}/LightCurvePixel.png", bbox_inches='tight')
-            # plt.close()
-
-            plt.figure()
-            plt.plot(np.arange(0,len(CatalogList)),CatalogList)
-            plt.xlabel('Frame')
-            plt.ylabel('Magnitude')
-            plt.gca().invert_yaxis()
-            plt.savefig(f"{Folder}/LightCurve.png", bbox_inches='tight')
-            plt.close()
 
         PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
                 img,Folder)
