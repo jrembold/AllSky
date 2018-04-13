@@ -270,7 +270,7 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
                 # Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
                     # *XFitParameters),
                 # label='Gaussian Fit')
-    ax3.legend(bbox_to_anchor=(0.,-.2, 1., .102), loc=3,ncol=2, borderaxespad=0.)
+    # ax3.legend(bbox_to_anchor=(0.,-.2, 1., .102), loc=3,ncol=2, borderaxespad=0.)
     ax3.invert_yaxis()
     ax3.xaxis.set_visible(False)
     
@@ -331,7 +331,7 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
 
     record = True
     frame_no = 100
-    CatalogMagnitude = int(TheCatalogMagnitude) #parameter cant be global    
+    CatalogMagnitude = float(TheCatalogMagnitude) #parameter cant be global    
 
     REFERENCESTARLOC = referencestarlocation
     OBJECTLOC = objectlocation
