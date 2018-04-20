@@ -130,7 +130,8 @@ class GUI(tk.Frame):
 
         self.ThresholdVariable=tk.IntVar()
         self.ThresholdOn = tk.Radiobutton(Frame2_1, text="ON", 
-                variable=self.ThresholdVariable, value=1, indicatoron=0, command=self.ThresholdRadio)
+                variable=self.ThresholdVariable, value=1, indicatoron=0, 
+                command=self.ThresholdRadio)
         self.ThresholdOff = tk.Radiobutton(Frame2_1, 
                 text="OFF", variable=self.ThresholdVariable, value=0, 
                 indicatoron=0, command=self.ThresholdRadio)
@@ -242,8 +243,8 @@ class GUI(tk.Frame):
         if self.ThresholdToggle == True:
             self.ThresholdCompleted = True
             self.ThresholdNumber = self.thresholdvar.get()
-            ThresholdView = Photometry.Threshold(self.ImageStack[:,:,self.FrameNo], 
-                    self.ThresholdNumber)
+            ThresholdView = Photometry.Threshold(self.ImageStack[:,:,
+                self.FrameNo], self.ThresholdNumber)
             self.CamView = Image.fromarray(ThresholdView)
             self.CamView = ImageTk.PhotoImage(self.CamView)
             self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
@@ -283,7 +284,8 @@ class GUI(tk.Frame):
         print(self.Catalog)
         # self.runButton.configure(text="Running")
         Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
-                self.OBJECTLOC,self.REFERENCESTARLOC,self.ThresholdNumber,self.Catalog)
+                self.OBJECTLOC,self.REFERENCESTARLOC,
+                self.ThresholdNumber,self.Catalog)
         lightcurvepath= f'{self.FolderPath}/LightCurve.png'
         self.OG = Image.open(lightcurvepath)
         ResizedOG = self.OG.resize((360,240),Image.ANTIALIAS)

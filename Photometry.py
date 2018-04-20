@@ -48,7 +48,8 @@ def click(event, x, y, flags, param):
         OBJECTLOC = (x,y)
 
 def Threshold(theimage, ThresholdRatio):
-    threshold = cv2.threshold(theimage, ThresholdRatio, 255, cv2.THRESH_BINARY)[1]
+    threshold = cv2.threshold(theimage, ThresholdRatio, 255, 
+            cv2.THRESH_BINARY)[1]
     return(threshold)
 
 def MaxFinder(X, Y, img):
@@ -110,7 +111,8 @@ def GaussianFinder(MaxLoc, img):
     return(FitParameters)
 
 def MagnitudeFinder(Loc, XFitParameters, YFitParameters, img):
-    global Radius, OBJECTBACKGROUNDRADIUS, REFERENCEBACKGROUNDRADIUS, OBJECTAVGRADIUS, REFERENCESTARAVGRADIUS
+    global Radius, OBJECTBACKGROUNDRADIUS, REFERENCEBACKGROUNDRADIUS 
+    global OBJECTAVGRADIUS, REFERENCESTARAVGRADIUS
     YRadius = int(np.ceil(2*XFitParameters[2])) 
     XRadius = int(np.ceil(2*YFitParameters[2]))
     Radius = max(XRadius,YRadius)
@@ -193,17 +195,19 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
     # ax1.set_xlim(-PlotRange+OBJECTLOC[0],PlotRange+OBJECTLOC[0])
     # ax1.set_ylim(-PlotRange+OBJECTLOC[1],PlotRange+OBJECTLOC[1])
     # if XMaxLoc == int(XFitParametersObj[1]):
-        # #ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
+        # ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
         # ax1.add_artist(plt.Circle((OBJECTLOC),OBJECTBACKGROUNDRADIUS, 
             # color = 'yellow', alpha=.2))
-        # ax1.add_artist(plt.Circle((OBJECTLOC),Radius,color='red', alpha=0.2))
+        # ax1.add_artist(plt.Circle((OBJECTLOC),Radius,color='red', 
+            # alpha=0.2))
         # ax1.add_artist(plt.Circle((OBJECTLOC),.1, color = 'black',))
-    # # if XMaxLoc == int(XFitParametersRef[1]):
-        # # ax1.set_title('Magnitude of %s' %(CatalogMagnitude))
-        # # ax1.add_artist(plt.Circle((REFERENCESTARLOC),Radius,
-            # # color='blue', alpha=0.2))
-        # # ax1.add_artist(plt.Circle((REFERENCESTARLOC),REFERENCEBACKGROUNDRADIUS, 
-            # # color = 'yellow', alpha=.2))
+    # if XMaxLoc == int(XFitParametersRef[1]):
+        # ax1.set_title('Magnitude of %s' %(CatalogMagnitude))
+        # ax1.add_artist(plt.Circle((REFERENCESTARLOC),Radius,
+            # color='blue', alpha=0.2))
+        # # ax1.add_artist(plt.Circle((REFERENCESTARLOC),
+            # REFERENCEBACKGROUNDRADIUS, 
+            # color = 'yellow', alpha=.2))
     # ax1.axis('off')
    
     ax1.imshow(img,cmap='gray')
@@ -213,11 +217,14 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
         # ax1.set_title('Magnitude of %s'%(round(ObjectCatalogValue,3)))
         ax1.add_artist(plt.Circle((OBJECTLOC),OBJECTBACKGROUNDRADIUS, 
             color = 'yellow', alpha=.2))
-        ax1.add_artist(plt.Circle((OBJECTLOC),OBJECTAVGRADIUS,color='red',alpha=.2))
+        ax1.add_artist(plt.Circle((OBJECTLOC),OBJECTAVGRADIUS,color='red',
+            alpha=.2))
         # ax1.add_artist(plt.Circle((OBJECTLOC),.1, color = 'black',))
     if XMaxLoc == int(XFitParametersRef[1]):
-        ax1.set_xlim(-PlotRange+REFERENCESTARLOC[0],PlotRange+REFERENCESTARLOC[0])
-        ax1.set_ylim(-PlotRange+REFERENCESTARLOC[1],PlotRange+REFERENCESTARLOC[1])
+        ax1.set_xlim(-PlotRange+REFERENCESTARLOC[0],
+                PlotRange+REFERENCESTARLOC[0])
+        ax1.set_ylim(-PlotRange+REFERENCESTARLOC[1],
+                PlotRange+REFERENCESTARLOC[1])
         # ax1.set_title('Magnitude of %s' %(CatalogMagnitude))
         ax1.add_artist(plt.Circle((REFERENCESTARLOC),5,
             color='blue', alpha=0.2))
@@ -270,7 +277,8 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
                 Gaussian(np.arange(-PlotRange+XMaxLoc,PlotRange+XMaxLoc),
                     *XFitParameters),
                 label='Gaussian Fit')
-    # ax3.legend(bbox_to_anchor=(0.,-.2, 1., .102), loc=3,ncol=2, borderaxespad=0.)
+    # ax3.legend(bbox_to_anchor=(0.,-.2, 1., .102), loc=3,ncol=2, 
+        # borderaxespad=0.)
     ax3.invert_yaxis()
     ax3.xaxis.set_visible(False)
     
@@ -315,7 +323,8 @@ def InitialRead(VideoName):
         (Grabbed,Image) = Video.read()
     return(ImageStack)
 
-def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, ThresholdNumber,TheCatalogMagnitude):
+def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, 
+        ThresholdNumber,TheCatalogMagnitude):
     global REFERENCESTARLOC
     global OBJECTLOC
     global REFERENCESTARAVGRADIUS
@@ -356,7 +365,8 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
-    # REFERENCESTARLOC = MaxFinder(REFERENCESTARLOC[0], REFERENCESTARLOC[1], img)
+    # REFERENCESTARLOC = MaxFinder(REFERENCESTARLOC[0],
+        # REFERENCESTARLOC[1],img)
     # XFitParametersRef = GaussianFinder(REFERENCESTARLOC[0], img)
     # YFitParametersRef = GaussianFinder(REFERENCESTARLOC[1], img)
     # ReferenceMagValue = MagnitudeFinder(REFERENCESTARLOC, 
@@ -414,12 +424,16 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
         ObjectCatalogValue = -2.5*np.log10(i) - Offset
         CatalogList.append(ObjectCatalogValue)
 
-
+    with open(f'{Folder}/MagValues.txt', 'w') as output:
+        output.write(str(ObjectMagValueList))
+    with open(f'{Folder}CatalogValues.txt', 'w') as output:
+        output.write(str(CatalogList))
+    
     plt.figure()
     # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
     plt.plot(np.arange(0,len(CatalogList)),CatalogList)
     plt.xlabel('Frame')
-    plt.ylabel('Pixel Values')
+    plt.ylabel('Magnitude')
     # plt.yticks([])
     plt.gca().invert_yaxis()
     plt.savefig(f"{Folder}/LightCurve.png", bbox_inches='tight')
@@ -427,10 +441,6 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, Thre
 # open with "python /path/to/script.py --image /path/to/picture.jpg"
 ##################################################
 if __name__ == "__main__":
-    print('Instructions')
-    print('Reference Star = left click ||| Object = right click')
-    print('Click on item. It does not need to be exact. Continue to hold and drag cursor to area of empty space next to item and release.')
-    print('If circle does not satisfy what you were trying to do, feel free to repeat the previous instruction.')
     ap=argparse.ArgumentParser()
     ap.add_argument("-i", "--video", required=True)
     args= vars(ap.parse_args())
