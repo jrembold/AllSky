@@ -182,7 +182,7 @@ class GUI(tk.Frame):
         self.var = tk.IntVar()
         self.FrameSlider = tk.Scale(Frame4, from_=1, to=2, 
                 orient=HORIZONTAL, length = 360, command=self.PlotFrame, 
-                variable=self.var, label='Plot Frame' )
+                variable=self.var, label='Plot Frame', state=tk.DISABLED )
         self.FrameSlider.pack(side=LEFT)
 
 
@@ -287,7 +287,7 @@ class GUI(tk.Frame):
         self.LightCurve.config(image=self.IMG)
         self.runButton.configure(bg = 'white', fg='black')
         MaxFrameNumber= len(glob.glob(f"{self.FolderPath}/ObjectPlot*.png"))
-        self.FrameSlider.config(to=MaxFrameNumber)
+        self.FrameSlider.config(to=MaxFrameNumber, state=tk.NORMAL)
         self.restartButton.configure(bg ='firebrick4')
 
         FrameNumber = self.var.get()
