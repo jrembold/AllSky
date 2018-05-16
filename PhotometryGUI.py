@@ -103,6 +103,7 @@ class GUI(tk.Frame):
         Frame2 = tk.Frame(self)
         Frame2.pack(fill=X)
         ##################################################
+
         self.NameButton = tk.Button(Frame2, text="POSITION", width=7)
         self.NameButton.pack(side=LEFT)
 
@@ -125,6 +126,7 @@ class GUI(tk.Frame):
         Frame2_1 = tk.Frame(self)
         Frame2_1.pack(fill=X) 
         ##################################################
+
         self.ThresholdButton = tk.Button(Frame2_1, text="THRESHOLD", width=7)
         self.ThresholdButton.pack(side=LEFT)
 
@@ -157,11 +159,12 @@ class GUI(tk.Frame):
 
         self.display = tk.Label(Frame3, image="")
         self.display.pack(side=LEFT)
+
+
         ##################################################
         Frame4 = tk.Frame(self)
         Frame4.pack(fill=X)
         ##################################################
-
 
         self.slidervar = tk.IntVar()
         self.InitialSlider = tk.Scale(Frame4, from_=0, to=100, 
@@ -170,6 +173,7 @@ class GUI(tk.Frame):
         self.InitialSlider.pack(side=LEFT)
         
         self.thresholdvar = tk.IntVar()
+        self.thresholdvar.set(100)
         self.ThresholdSlider = tk.Scale(Frame4, from_=0, to=255, 
                 orient=HORIZONTAL, label='Threshold',
                 command=self.Threshold,variable=self.thresholdvar,length=360)
@@ -229,32 +233,30 @@ class GUI(tk.Frame):
             self.ThresholdToggle = False
         if self.ThresholdSelection == 1:
             self.ThresholdToggle = True
+        self.RefreshVideoImage()
 
     def VideoLength(self,event):
         self.FrameNo = self.slidervar.get()
-        if self.ThresholdToggle == False:
-            self.CamView = Image.fromarray(self.ImageStack[:,:,self.FrameNo])
-            self.CamView = ImageTk.PhotoImage(self.CamView)
-            self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
-        if self.ThresholdToggle == True:
-            self.ThresholdCompleted = True
+        self.RefreshVideoImage()
+
+    def RefreshVideoImage(self):
+        if self.ThresholdToggle:
             self.ThresholdNumber = self.thresholdvar.get()
-            ThresholdView = Photometry.Threshold(self.ImageStack[:,:,
-                self.FrameNo], self.ThresholdNumber)
+            ThresholdView = Photometry.Threshold(self.ImageStack[:,:,self.FrameNo], 
+                    self.ThresholdNumber)
             self.CamView = Image.fromarray(ThresholdView)
             self.CamView = ImageTk.PhotoImage(self.CamView)
             self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
+            self.ThresholdCompleted = True
+        else:
+            self.CamView = Image.fromarray(self.ImageStack[:,:,self.FrameNo])
+            self.CamView = ImageTk.PhotoImage(self.CamView)
+            self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
 
-    
     def Threshold(self,event):
         self.ThresholdToggle = True
-        self.ThresholdNumber = self.thresholdvar.get()
-        ThresholdView = Photometry.Threshold(self.ImageStack[:,:,self.FrameNo], 
-                self.ThresholdNumber)
-        self.CamView = Image.fromarray(ThresholdView)
-        self.CamView = ImageTk.PhotoImage(self.CamView)
-        self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
-        self.ThresholdCompleted = True
+        self.ThresholdVariable.set(True)
+        self.RefreshVideoImage()
 
     def open(self):
         self.VideoName = tk.filedialog.askopenfilename(initialdir = 'Data')
@@ -268,12 +270,9 @@ class GUI(tk.Frame):
         self.ImageStack = Photometry.InitialRead(self.VideoName)
         VideoSize = self.ImageStack.shape[2]
         self.InitialSlider.config(to=VideoSize-1)
-        self.CamView = Image.fromarray(self.ImageStack[:,:,0])
-        # CamView = self.CamView.resize((640,480),Image.ANTIALIAS)
-        self.CamView = ImageTk.PhotoImage(self.CamView)
-        self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
-        self.openButton.configure(bg='white', fg='black')
+        self.RefreshVideoImage()
         # self.runButton.configure(bg='black',fg='white')
+        self.openButton.configure(bg='white', fg='black')
 
     def run(self):
         self.Catalog = self.CatalogValue.get()
