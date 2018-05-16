@@ -189,14 +189,12 @@ class GUI(tk.Frame):
     def PlotFrame(self,event):
         FrameNumber = self.var.get()
         if self.ChoiceToggle == False:
-            print('False')
             PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
             self.PlotImage = Image.open(PlotPath)
             self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
             self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
             self.display.config(image=self.PlotImage)
         if self.ChoiceToggle == True:
-            print('True')
             PlotPath= f'{self.FolderPath}/ReferencePlot{FrameNumber:03}.png'
             self.PlotImage = Image.open(PlotPath)
             self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
@@ -221,10 +219,8 @@ class GUI(tk.Frame):
             
     def ObjectChoice(self):
         if self.Choice.get() == 0:
-            print('0')
             self.ChoiceToggle = False
         if self.Choice.get() == 1:
-            print('1')
             self.ChoiceToggle = True
 
     def ThresholdRadio(self):
@@ -281,7 +277,6 @@ class GUI(tk.Frame):
 
     def run(self):
         self.Catalog = self.CatalogValue.get()
-        print(self.Catalog)
         # self.runButton.configure(text="Running")
         Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
                 self.OBJECTLOC,self.REFERENCESTARLOC,
