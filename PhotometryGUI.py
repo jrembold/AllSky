@@ -127,7 +127,7 @@ class GUI(tk.Frame):
         Frame2_1.pack(fill=X) 
         ##################################################
 
-        self.ThresholdButton = tk.Button(Frame2_1, text="THRESHOLD", width=7)
+        self.ThresholdButton = tk.Label(Frame2_1, text="THRESHOLD", width=12)
         self.ThresholdButton.pack(side=LEFT)
 
         self.ThresholdVariable=tk.IntVar()
@@ -212,6 +212,11 @@ class GUI(tk.Frame):
         self.ReferenceClick = True
         if self.ObjectClick == True and self.ThresholdCompleted == True:
             self.runButton.config(state='normal')
+        if hasattr(self, 'refspot'):
+            self.canvas.delete(self.refspot)
+        self.refspot = self.canvas.create_oval(event.x-5,
+                event.y-5,event.x+5,event.y+5, fill="", outline="green", width=2)
+
 
     def ObjectCoordinates(self,event):
         self.ObjectLabel.configure(text=f"Object: ({event.x},{event.y})")
@@ -220,6 +225,10 @@ class GUI(tk.Frame):
         self.ObjectClick = True
         if self.ReferenceClick == True and self.ThresholdCompleted == True:
             self.runButton.config(state='normal')
+        if hasattr(self, 'objspot'):
+            self.canvas.delete(self.objspot)
+        self.objspot = self.canvas.create_oval(event.x-5,
+                event.y-5,event.x+5,event.y+5, fill="", outline="red", width=2)
             
     def ObjectChoice(self):
         if self.Choice.get() == 0:
