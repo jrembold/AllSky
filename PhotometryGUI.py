@@ -268,13 +268,11 @@ class GUI(tk.Frame):
         self.RefreshVideoImage()
 
     def open(self):
-        self.VideoName = tk.filedialog.askopenfilename(initialdir = 'Data')
+        self.VideoName = tk.filedialog.askopenfilename(initialdir = 'Data',
+                filetypes=(("Video Files", "*.avi"),("All Files", "*.*")))
         self.VideoPath = '/'.join(self.VideoName.split('/')[:-1])
         self.FolderDirectory = (self.FolderName.get())
         self.FolderPath = f'{self.VideoPath}/{self.FolderDirectory}'
-        if os.path.exists(self.FolderPath):
-            shutil.rmtree(self.FolderPath)
-        os.makedirs(self.FolderPath)
 
         self.ImageStack = Photometry.InitialRead(self.VideoName)
         VideoSize = self.ImageStack.shape[2]
@@ -284,6 +282,11 @@ class GUI(tk.Frame):
         self.openButton.configure(bg='white', fg='black')
 
     def run(self):
+        # Only create folder in directory upon hitting run
+        if os.path.exists(self.FolderPath):
+            shutil.rmtree(self.FolderPath)
+        os.makedirs(self.FolderPath)
+        # Run script
         self.Catalog = self.CatalogValue.get()
         # self.runButton.configure(text="Running")
         Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
