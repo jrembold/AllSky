@@ -4,15 +4,21 @@ import tkinter.ttk as ttk
 from tkinter.constants import *
 from PIL import Image, ImageTk
 import glob
-import Photometry 
 import os
 import sys
 import shutil
 import time
 import datetime
 import numpy as np
-import cv2
+import pandas as pd
+import matplotlib
+matplotlib.use('TKAgg')
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+from matplotlib import style
+style.use('dark_background')
 
+import Photometry 
 
 class GUI(tk.Frame):
     
@@ -21,7 +27,7 @@ class GUI(tk.Frame):
         root = tk.Tk()
         app = cls(root)
         app.grid(sticky=NSEW)
-        root.geometry('1350x740+50+50')
+        root.geometry('1350x850+50+50')
         root.grid_columnconfigure(0, weight=1)
         root.grid_rowconfigure(0, weight=1)
         root.mainloop()
@@ -185,8 +191,8 @@ class GUI(tk.Frame):
 
         self.Choice=tk.IntVar()
         self.ObjectLabel = tk.Button(Frame3_1, text="Object: ( X , Y )",
-                command=self.ObjectChoice, height=3)
-        self.ReferenceLabel = tk.Button(Frame3_1, height=3,
+                command=self.ObjectChoice, height=5)
+        self.ReferenceLabel = tk.Button(Frame3_1, height=5,
                 text="Reference Star: ( X, Y )", command=self.ObjectChoice)
         self.ObjectLabel.pack(side=TOP, **pack_opts)
         self.ReferenceLabel.pack(side=TOP, **pack_opts)
@@ -195,8 +201,20 @@ class GUI(tk.Frame):
         """
 
 
-        self.LightCurve = tk.Label(Frame3, image="")
-        self.LightCurve.pack(side=LEFT)
+        self.fig = Figure(figsize=(11.5,2), dpi=100)
+        self.plt = self.fig.add_subplot(111)
+        self.plt.plot([1,2,3,4],[1,2,3,4], color='red')
+        self.plt.set_xlabel('Time (s)')
+        self.plt.set_ylabel('Magnitude')
+        self.fig.set_tight_layout({'pad': 0.50})
+
+        self.LightCurve = FigureCanvasTkAgg(self.fig, Frame3)
+        self.LightCurve.draw()
+        self.LightCurve.get_tk_widget().pack(side=LEFT, **pack_opts)
+        # self.LightCurve._tkcanvas.grid(**grid_opts)
+
+        # self.LightCurve = tk.Label(Frame3, image="")
+        # self.LightCurve.pack(side=LEFT)
 
 
 ##################################################
@@ -307,11 +325,11 @@ class GUI(tk.Frame):
         Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
                 self.OBJECTLOC,self.REFERENCESTARLOC,
                 self.ThresholdNumber,self.Catalog)
-        lightcurvepath= f'{self.FolderPath}/LightCurve.png'
-        self.OG = Image.open(lightcurvepath)
-        ResizedOG = self.OG.resize((660,140),Image.ANTIALIAS)
-        self.IMG = ImageTk.PhotoImage(ResizedOG)
-        self.LightCurve.config(image=self.IMG)
+        # lightcurvepath= f'{self.FolderPath}/LightCurve.png'
+        # self.OG = Image.open(lightcurvepath)
+        # ResizedOG = self.OG.resize((660,140),Image.ANTIALIAS)
+        # self.IMG = ImageTk.PhotoImage(ResizedOG)
+        # self.LightCurve.config(image=self.IMG)
         # self.runButton.configure(bg = 'white', fg='black')
         MaxFrameNumber= len(glob.glob(f"{self.FolderPath}/ObjectPlot*.png"))
         self.FrameSlider.config(to=MaxFrameNumber, state=tk.NORMAL)
@@ -324,6 +342,17 @@ class GUI(tk.Frame):
         self.PlotImage = self.PlotImage.resize((480,480),Image.ANTIALIAS)
         self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
         self.display.config(image=self.PlotImage)
+
+        self.updateLightCurve()
+
+    def updateLightCurve(self, *args):
+        df = pd.read_csv(f'{self.FolderPath}/Magnitudes.csv')
+        self.plt.clear()
+        self.fig.gca().invert_yaxis()
+        self.plt.plot(df.Time, df.Object, color='red')
+        self.plt.set_xlabel('Time (s)')
+        self.plt.set_ylabel('Magnitude')
+        self.fig.canvas.draw()
 
     def restart(self):
         python = sys.executable
