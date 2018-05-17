@@ -179,7 +179,7 @@ def PlottingCurve(XFitParameters, YFitParameters, Radius, img,Folder):
 
     # sns.set()
     # sns.set_style("dark")
-    sns.set_context("poster")
+    # sns.set_context("poster")
     matplotlib.style.use("dark_background")
     gs = gridspec.GridSpec(2, 2, width_ratios=[2, 1], height_ratios=[2,1])
     ax = plt.subplot(gs[0, 0]) 
@@ -375,7 +375,22 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
             # GaussianFinder(REFERENCESTARLOC[1], img), img)
     # XFitParameters = (0,0,0)
 
+    def DataWriter( df ):
+        df.loc[Iteration,'Frame'] = Iteration
+        df.loc[Iteration,'O_Loc_X1'] = OBJECTLOC[0]
+        df.loc[Iteration,'O_Loc_Y1'] = OBJECTLOC[1]
+        df.loc[Iteration,'R_Loc_X1'] = REFERENCESTARLOC[0]
+        df.loc[Iteration,'R_Loc_Y1'] = REFERENCESTARLOC[1]
+        df.loc[Iteration,'O_Gauss_Px'] = XFitParametersObj[1]
+        df.loc[Iteration,'O_Gauss_Ax'] = XFitParametersObj[0]
+        df.loc[Iteration,'O_Gauss_Sx'] = XFitParametersObj[2]
+        df.loc[Iteration,'O_Gauss_Py'] = YFitParametersObj[1]
+        df.loc[Iteration,'O_Gauss_Ay'] = YFitParametersObj[0]
+        df.loc[Iteration,'O_Gauss_Sy'] = YFitParametersObj[2]
+        
 
+
+    Datalist = pd.DataFrame([])
     ObjectMagValueList = []
     ReferenceMagValueList = []
     CatalogList = []
@@ -383,21 +398,21 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
     Iteration = 1
     while Grabbed == True:
 
+
         (Grabbed, img) = vid.read()
         if Grabbed == False:
             break
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+        OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img)
         REFERENCESTARLOC = MaxFinder(REFERENCESTARLOC[0], 
                 REFERENCESTARLOC[1], img)
-        OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img)
         if END == True: 
             break
         XFitParametersRef = GaussianFinder(REFERENCESTARLOC[0], img)
         YFitParametersRef = GaussianFinder(REFERENCESTARLOC[1], img)
         ReferenceMagValue = MagnitudeFinder(REFERENCESTARLOC, 
-            GaussianFinder(REFERENCESTARLOC[0], img), 
-            GaussianFinder(REFERENCESTARLOC[1], img), img)
+            XFitParametersRef, YFitParametersRef, img)
         ReferenceMagValueList.append(ReferenceMagValue)
 
         XFitParametersObj = GaussianFinder(OBJECTLOC[0], img)
@@ -408,10 +423,12 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
             ObjectMagValue = 0
         ObjectMagValueList.append(ObjectMagValue)
 
-        PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
-                img,Folder)
-        PlottingCurve(XFitParametersRef, YFitParametersRef, 
-                REFERENCESTARAVGRADIUS, img,Folder)
+        DataWriter(Datalist)
+
+        # PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
+                # img,Folder)
+        # PlottingCurve(XFitParametersRef, YFitParametersRef, 
+                # REFERENCESTARAVGRADIUS, img,Folder)
         Iteration += 1
 
     # ReferenceMagValue = np.mean(ReferenceMagValueList)
@@ -431,6 +448,7 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
 
     # Writing out light-curves
     LightCurves.to_csv(f'{Folder}/Magnitudes.csv', index=False)
+    Datalist.to_csv(f'{Folder}/FitData.csv', index=False)
     
     plt.figure()
     # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
