@@ -21,7 +21,7 @@ class GUI(tk.Frame):
         root = tk.Tk()
         app = cls(root)
         app.grid(sticky=NSEW)
-        root.geometry('800x500+50+50')
+        root.geometry('1345x730+50+50')
         root.grid_columnconfigure(0, weight=1)
         root.grid_rowconfigure(0, weight=1)
         root.mainloop()
@@ -31,7 +31,7 @@ class GUI(tk.Frame):
         self.master = root
         self.pack(fill=BOTH, expand=True)
 
-        self.tk_setPalette( background = 'black',
+        self.tk_setPalette( background = 'gray5',
                             foreground = 'gray80',
                             activeBackground = 'gray30',
                             selectColor = 'firebrick4',
@@ -50,6 +50,8 @@ class GUI(tk.Frame):
         # Frame01 = tk.Frame(self)
         # Frame01.pack(fill=X)
 
+        pack_opts = dict(fill=BOTH, padx=5, pady=2)
+
 
 
         # mess = r"""
@@ -65,125 +67,132 @@ class GUI(tk.Frame):
         # self.Line=tk.Label(Frame01, justify=tk.LEFT, text=mess)
         # self.Line.pack()
 
+
         ################################################## 
-        Frame1 = tk.Frame(self)
-        Frame1.pack(fill=X)
+        Frame1 = tk.LabelFrame(self, text='Frame1')
+        Frame1.pack(**pack_opts)
         ##################################################
         self.FolderName = tk.Entry(Frame1)
         self.FolderName.insert(0,
                 f'{datetime.datetime.now().strftime("%Y%m%d_%H%M")}')
-        self.FolderName.pack(side=LEFT, fill=Y)
+        self.FolderName.pack(side=LEFT, **pack_opts)
 
         self.runButton = tk.Button(Frame1, text='RUN', width=7, 
                 height=1, command=self.run, bg='black',state=DISABLED)
-        self.runButton.pack(side=LEFT)
+        self.runButton.pack(side=LEFT, **pack_opts)
 
         self.openButton = tk.Button(Frame1, text='OPEN', width=7, 
                 height=1, command=self.open, bg='black')
-        self.openButton.pack(side=LEFT)
+        self.openButton.pack(side=LEFT, **pack_opts)
        
-        # self.ProgressLabel = tk.Button(Frame1, text="Not Started")
-        # self.ProgressLabel.pack(side=LEFT)
-
-        # self.ObjectLabel = tk.Button(Frame1, text="Object:( X , Y )")
-        # self.ObjectLabel.pack(side=LEFT)
-
-        # self.ReferenceLabel = tk.Button(Frame1, text="Reference:( X , Y )")
-        # self.ReferenceLabel.pack(side=LEFT)
-
         self.restartButton = tk.Button(Frame1, text='RESET', width=7, 
                 height=1, command=self.restart, bg='black')
-        self.restartButton.pack(side=LEFT)
+        self.restartButton.pack(side=LEFT, **pack_opts)
 
         self.QuitButton = tk.Button(Frame1, text="QUIT", 
                 command=Frame1.quit, width=7)
-        self.QuitButton.pack(side=LEFT)
+        self.QuitButton.pack(side=LEFT, **pack_opts)
 
-        ##################################################
-        Frame2 = tk.Frame(self)
-        Frame2.pack(fill=X)
-        ##################################################
-
-        self.NameButton = tk.Button(Frame2, text="POSITION", width=7)
-        self.NameButton.pack(side=LEFT)
-
-        self.Choice=tk.IntVar()
-        self.ObjectLabel = tk.Radiobutton(Frame2, text="Object: ( X , Y )", 
-                variable=self.Choice, value=0, indicatoron=0,
-                command=self.ObjectChoice)
-        self.ReferenceLabel = tk.Radiobutton(Frame2, 
-                text="Reference Star: ( X, Y )", variable=self.Choice, value=1, 
-                indicatoron=0,command=self.ObjectChoice)
-        self.ObjectLabel.pack(side=LEFT,fill=Y)
-        self.ReferenceLabel.pack(side=LEFT,fill=Y)
-
-        self.CatalogValue = tk.Entry(Frame2)
+        self.CatalogValue = tk.Entry(Frame1)
         self.CatalogValue.insert(0,'0')
-        self.CatalogValue.pack(side=LEFT, fill=Y)
+        self.CatalogValue.pack(side=RIGHT, **pack_opts)
 
+        self.CatLab = tk.Label(Frame1, text='Reference Magnitude:')
+        self.CatLab.pack(side=RIGHT, **pack_opts)
 
         ##################################################
-        Frame2_1 = tk.Frame(self)
-        Frame2_1.pack(fill=X) 
+        Frame2 = tk.LabelFrame(self, text='Frame2')
+        Frame2.pack(**pack_opts)
         ##################################################
 
-        self.ThresholdButton = tk.Label(Frame2_1, text="THRESHOLD", width=12)
-        self.ThresholdButton.pack(side=LEFT)
+        ##################################################
+        #Frame 2_1: Threshold Toggle Buttons
+        ##################################################
+        Frame2_1 = tk.Frame(Frame2, height=480)
+        Frame2_1.pack(side=LEFT, **pack_opts)
 
         self.ThresholdVariable=tk.IntVar()
         self.ThresholdOn = tk.Radiobutton(Frame2_1, text="ON", 
                 variable=self.ThresholdVariable, value=1, indicatoron=0, 
-                command=self.ThresholdRadio)
+                command=self.ThresholdRadio, wraplength=1, width=4, height=17)
         self.ThresholdOff = tk.Radiobutton(Frame2_1, 
-                text="OFF", variable=self.ThresholdVariable, value=0, 
-                indicatoron=0, command=self.ThresholdRadio)
-        self.ThresholdOn.pack(side=LEFT,fill=Y)
-        self.ThresholdOff.pack(side=LEFT,fill=Y)
+                text="OFF", variable=self.ThresholdVariable, value=0, height=17,
+                indicatoron=0, command=self.ThresholdRadio, wraplength=1, width=4)
+        self.ThresholdOn.pack(side=TOP, **pack_opts)
+        self.ThresholdOff.pack(side=BOTTOM, **pack_opts)
+
+        # Threshold Slider
+        self.thresholdvar = tk.IntVar()
+        self.thresholdvar.set(100)
+        self.ThresholdSlider = tk.Scale(Frame2, from_=255, to=0, 
+                command=self.Threshold,
+                variable=self.thresholdvar, length=480, showvalue=False)
+        self.ThresholdSlider.pack(side=LEFT, **pack_opts) 
 
 
         ##################################################
-        Frame3 = tk.Frame(self)
-        Frame3.pack(fill=X) 
+        #Frame 2_2: Video View and Slider
         ##################################################
+        Frame2_2 = tk.Frame(Frame2)
+        Frame2_2.pack(side=LEFT, **pack_opts)
 
         self.CamView = []
-        self.canvas = tk.Canvas(Frame3, width = 720, height=480, bg='black')
-        self.canvas.pack(side=LEFT)
+        self.canvas = tk.Canvas(Frame2_2, width = 720, height=480, bg='black')
+        self.canvas.pack(side=TOP, **pack_opts)
         self.ImageCanvas= self.canvas.create_image(0,0, anchor=NW, 
                 image=self.CamView)
         self.canvas.bind("<Button-1>",self.ReferenceCoordinates)
         self.canvas.bind("<Button-3>",self.ObjectCoordinates)
 
-        self.LightCurve = tk.Label(Frame3, image="")
-        self.LightCurve.pack(side=LEFT)
-
-        self.display = tk.Label(Frame3, image="")
-        self.display.pack(side=LEFT)
-
-
-        ##################################################
-        Frame4 = tk.Frame(self)
-        Frame4.pack(fill=X)
-        ##################################################
-
         self.slidervar = tk.IntVar()
-        self.InitialSlider = tk.Scale(Frame4, from_=0, to=100, 
-                orient=HORIZONTAL, label='Initial Frame', 
-                command=self.VideoLength, variable=self.slidervar,length=360)
-        self.InitialSlider.pack(side=LEFT)
-        
-        self.thresholdvar = tk.IntVar()
-        self.thresholdvar.set(100)
-        self.ThresholdSlider = tk.Scale(Frame4, from_=0, to=255, 
-                orient=HORIZONTAL, label='Threshold',
-                command=self.Threshold,variable=self.thresholdvar,length=360)
-        self.ThresholdSlider.pack(side=LEFT) 
+        self.InitialSlider = tk.Scale(Frame2_2, from_=0, to=100, 
+                orient=HORIZONTAL, label='Frame Slider', 
+                command=self.VideoLength, variable=self.slidervar,length=720)
+        self.InitialSlider.pack(side=TOP)
+
+
+        ##################################################
+        #Frame 2_3: Results View and Slider
+        ##################################################
+        Frame2_3 = tk.Frame(Frame2)
+        Frame2_3.pack(side=LEFT, **pack_opts)
+
+        self.display = tk.Label(Frame2_3, image="")
+        self.display.pack(side=TOP, **pack_opts)
 
         self.var = tk.IntVar()
-        self.FrameSlider = tk.Scale(Frame4, from_=1, to=2, 
-                orient=HORIZONTAL, length = 360, command=self.PlotFrame, 
+        self.FrameSlider = tk.Scale(Frame2_3, from_=1, to=2, 
+                orient=HORIZONTAL, length = 480, command=self.PlotFrame, 
                 variable=self.var, label='Plot Frame', state=tk.DISABLED )
-        self.FrameSlider.pack(side=LEFT)
+        self.FrameSlider.pack(side=BOTTOM, **pack_opts)
+
+
+        # self.NameButton = tk.Button(Frame2, text="POSITION", width=7)
+        # self.NameButton.pack(side=LEFT)
+
+
+        ##################################################
+        Frame3 = tk.LabelFrame(self, text='Frame3')
+        Frame3.pack(side=TOP, **pack_opts) 
+        ##################################################
+
+        ################################################## 
+        #Frame 3_1: Clicked Locations
+        ################################################## 
+        Frame3_1 = tk.LabelFrame(Frame3)
+        Frame3_1.pack(side=LEFT, **pack_opts)
+
+        self.Choice=tk.IntVar()
+        self.ObjectLabel = tk.Button(Frame3_1, text="Object: ( X , Y )",
+                command=self.ObjectChoice)
+        self.ReferenceLabel = tk.Button(Frame3_1, 
+                text="Reference Star: ( X, Y )", command=self.ObjectChoice)
+        self.ObjectLabel.pack(side=TOP, **pack_opts)
+        self.ReferenceLabel.pack(side=TOP, **pack_opts)
+
+
+        self.LightCurve = tk.Label(Frame3, image="")
+        self.LightCurve.pack(side=LEFT)
 
 
 ##################################################
@@ -195,7 +204,7 @@ class GUI(tk.Frame):
         if self.ChoiceToggle == False:
             PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
             self.PlotImage = Image.open(PlotPath)
-            self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
+            self.PlotImage = self.PlotImage.resize((480,480),Image.ANTIALIAS)
             self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
             self.display.config(image=self.PlotImage)
         if self.ChoiceToggle == True:
@@ -208,7 +217,7 @@ class GUI(tk.Frame):
     def ReferenceCoordinates(self,event):
         self.ReferenceLabel.configure(text=f"Reference: ({event.x},{event.y})")
         self.REFERENCESTARLOC = (event.x,event.y)
-        self.ReferenceLabel.configure(bg ='white',fg = 'black')
+        self.ReferenceLabel.configure(bg ='green',fg = 'black')
         self.ReferenceClick = True
         if self.ObjectClick == True and self.ThresholdCompleted == True:
             self.runButton.config(state='normal')
@@ -221,14 +230,15 @@ class GUI(tk.Frame):
     def ObjectCoordinates(self,event):
         self.ObjectLabel.configure(text=f"Object: ({event.x},{event.y})")
         self.OBJECTLOC = (event.x,event.y)
-        self.ObjectLabel.configure(bg ='white',fg ='black')
+        self.ObjectLabel.configure(bg ='firebrick4',fg ='black')
         self.ObjectClick = True
         if self.ReferenceClick == True and self.ThresholdCompleted == True:
             self.runButton.config(state='normal')
         if hasattr(self, 'objspot'):
             self.canvas.delete(self.objspot)
         self.objspot = self.canvas.create_oval(event.x-5,
-                event.y-5,event.x+5,event.y+5, fill="", outline="red", width=2)
+                event.y-5,event.x+5,event.y+5, fill="", outline="firebrick4",
+                width=2)
             
     def ObjectChoice(self):
         if self.Choice.get() == 0:
@@ -279,7 +289,8 @@ class GUI(tk.Frame):
         self.InitialSlider.config(to=VideoSize-1)
         self.RefreshVideoImage()
         # self.runButton.configure(bg='black',fg='white')
-        self.openButton.configure(bg='white', fg='black')
+        # self.openButton.configure(bg='white', fg='black')
+        self.openButton.configure(state=DISABLED)
 
     def run(self):
         # Only create folder in directory upon hitting run
@@ -288,24 +299,25 @@ class GUI(tk.Frame):
         os.makedirs(self.FolderPath)
         # Run script
         self.Catalog = self.CatalogValue.get()
-        # self.runButton.configure(text="Running")
+        self.runButton.configure(text="Running")
         Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
                 self.OBJECTLOC,self.REFERENCESTARLOC,
                 self.ThresholdNumber,self.Catalog)
         lightcurvepath= f'{self.FolderPath}/LightCurve.png'
         self.OG = Image.open(lightcurvepath)
-        ResizedOG = self.OG.resize((360,240),Image.ANTIALIAS)
+        ResizedOG = self.OG.resize((660,140),Image.ANTIALIAS)
         self.IMG = ImageTk.PhotoImage(ResizedOG)
         self.LightCurve.config(image=self.IMG)
-        self.runButton.configure(bg = 'white', fg='black')
+        # self.runButton.configure(bg = 'white', fg='black')
         MaxFrameNumber= len(glob.glob(f"{self.FolderPath}/ObjectPlot*.png"))
         self.FrameSlider.config(to=MaxFrameNumber, state=tk.NORMAL)
         self.restartButton.configure(bg ='firebrick4')
+        self.runButton.configure(text="Run")
 
         FrameNumber = self.var.get()
         PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
         self.PlotImage = Image.open(PlotPath)
-        self.PlotImage = self.PlotImage.resize((360,360),Image.ANTIALIAS)
+        self.PlotImage = self.PlotImage.resize((480,480),Image.ANTIALIAS)
         self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
         self.display.config(image=self.PlotImage)
 
