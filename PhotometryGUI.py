@@ -21,7 +21,7 @@ class GUI(tk.Frame):
         root = tk.Tk()
         app = cls(root)
         app.grid(sticky=NSEW)
-        root.geometry('1345x730+50+50')
+        root.geometry('1350x740+50+50')
         root.grid_columnconfigure(0, weight=1)
         root.grid_rowconfigure(0, weight=1)
         root.mainloop()
@@ -51,6 +51,7 @@ class GUI(tk.Frame):
         # Frame01.pack(fill=X)
 
         pack_opts = dict(fill=BOTH, padx=5, pady=2)
+        grid_opts = dict(sticky=NSEW, padx=5, pady=2)
 
 
 
@@ -69,7 +70,7 @@ class GUI(tk.Frame):
 
 
         ################################################## 
-        Frame1 = tk.LabelFrame(self, text='Frame1')
+        Frame1 = tk.LabelFrame(self, text='Control')
         Frame1.pack(**pack_opts)
         ##################################################
         self.FolderName = tk.Entry(Frame1)
@@ -101,7 +102,7 @@ class GUI(tk.Frame):
         self.CatLab.pack(side=RIGHT, **pack_opts)
 
         ##################################################
-        Frame2 = tk.LabelFrame(self, text='Frame2')
+        Frame2 = tk.Frame(self)
         Frame2.pack(**pack_opts)
         ##################################################
 
@@ -120,6 +121,8 @@ class GUI(tk.Frame):
                 indicatoron=0, command=self.ThresholdRadio, wraplength=1, width=4)
         self.ThresholdOn.pack(side=TOP, **pack_opts)
         self.ThresholdOff.pack(side=BOTTOM, **pack_opts)
+        # self.ThresholdOn.grid(row=0, column=0, **grid_opts)
+        # self.ThresholdOff.grid(row=1, column=0, **grid_opts)
 
         # Threshold Slider
         self.thresholdvar = tk.IntVar()
@@ -167,28 +170,29 @@ class GUI(tk.Frame):
         self.FrameSlider.pack(side=BOTTOM, **pack_opts)
 
 
-        # self.NameButton = tk.Button(Frame2, text="POSITION", width=7)
-        # self.NameButton.pack(side=LEFT)
 
 
         ##################################################
-        Frame3 = tk.LabelFrame(self, text='Frame3')
+        Frame3 = tk.Frame(self)
         Frame3.pack(side=TOP, **pack_opts) 
         ##################################################
 
         ################################################## 
         #Frame 3_1: Clicked Locations
         ################################################## 
-        Frame3_1 = tk.LabelFrame(Frame3)
+        Frame3_1 = tk.Frame(Frame3)
         Frame3_1.pack(side=LEFT, **pack_opts)
 
         self.Choice=tk.IntVar()
         self.ObjectLabel = tk.Button(Frame3_1, text="Object: ( X , Y )",
-                command=self.ObjectChoice)
-        self.ReferenceLabel = tk.Button(Frame3_1, 
+                command=self.ObjectChoice, height=3)
+        self.ReferenceLabel = tk.Button(Frame3_1, height=3,
                 text="Reference Star: ( X, Y )", command=self.ObjectChoice)
         self.ObjectLabel.pack(side=TOP, **pack_opts)
         self.ReferenceLabel.pack(side=TOP, **pack_opts)
+        """ I realize by making these normal buttons I nuked some functionality
+            here, so I'll debate on whether to reimplement that or not
+        """
 
 
         self.LightCurve = tk.Label(Frame3, image="")
