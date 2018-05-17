@@ -424,10 +424,10 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
         ObjectCatalogValue = -2.5*np.log10(i) - Offset
         CatalogList.append(ObjectCatalogValue)
 
-    with open(f'{Folder}/MagValues.txt', 'w') as output:
-        output.write(str(ObjectMagValueList))
-    with open(f'{Folder}CatalogValues.txt', 'w') as output:
-        output.write(str(CatalogList))
+
+    # Writing out light-curves
+    np.savetxt(f'{Folder}/MagValues.csv', ObjectMagValueList, delimiter=',')
+    np.savetxt(f'{Folder}/CatalogValues.csv', CatalogList, delimiter=',')
     
     plt.figure()
     # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
