@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import matplotlib.gridspec as gridspec
 import matplotlib
+import pandas as pd
 
 END = False
 REFERENCESTARLOC = (0,0)
@@ -389,6 +390,7 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
 
         REFERENCESTARLOC = MaxFinder(REFERENCESTARLOC[0], 
                 REFERENCESTARLOC[1], img)
+        OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img)
         if END == True: 
             break
         XFitParametersRef = GaussianFinder(REFERENCESTARLOC[0], img)
@@ -398,9 +400,6 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
             GaussianFinder(REFERENCESTARLOC[1], img), img)
         ReferenceMagValueList.append(ReferenceMagValue)
 
-        OBJECTLOC = MaxFinder(OBJECTLOC[0], OBJECTLOC[1], img)
-        if END == True:
-            break
         XFitParametersObj = GaussianFinder(OBJECTLOC[0], img)
         YFitParametersObj = GaussianFinder(OBJECTLOC[1], img)
         ObjectMagValue=MagnitudeFinder(OBJECTLOC,XFitParametersObj,
@@ -415,19 +414,23 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
                 REFERENCESTARAVGRADIUS, img,Folder)
         Iteration += 1
 
-    ReferenceMagValue = np.mean(ReferenceMagValueList)
+    # ReferenceMagValue = np.mean(ReferenceMagValueList)
 
-    InstrumentalMagnitude = -2.5*np.log10(ReferenceMagValue)
-    Offset = InstrumentalMagnitude - CatalogMagnitude 
+    InstrumentalMagnitudes = -2.5*np.log10(ReferenceMagValueList)
+    Offsets = InstrumentalMagnitudes - CatalogMagnitude 
 
     for i in ObjectMagValueList:
-        ObjectCatalogValue = -2.5*np.log10(i) - Offset
+        ObjectCatalogValue = -2.5*np.log10(i) - np.mean(Offsets)
         CatalogList.append(ObjectCatalogValue)
 
+    # Create Files
+    LightCurves = pd.DataFrame({'Time' : np.arange(1,Iteration)/29.97,
+                                'Object' : CatalogList,
+                                'Reference' : InstrumentalMagnitudes})
+    LightCurves = LightCurves[['Time', 'Object', 'Reference']] # fixing ordering
 
     # Writing out light-curves
-    np.savetxt(f'{Folder}/MagValues.csv', ObjectMagValueList, delimiter=',')
-    np.savetxt(f'{Folder}/CatalogValues.csv', CatalogList, delimiter=',')
+    LightCurves.to_csv(f'{Folder}/Magnitudes.csv', index=False)
     
     plt.figure()
     # plt.plot(np.arange(0,len(ObjectMagValueList)),ObjectMagValueList)
