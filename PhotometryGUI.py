@@ -171,7 +171,7 @@ class GUI(tk.Frame):
 
         self.var = tk.IntVar()
         self.FrameSlider = tk.Scale(Frame2_3, from_=1, to=2, 
-                orient=HORIZONTAL, length = 480, command=self.PlotFrame, 
+                orient=HORIZONTAL, length = 480, command=self.RefreshResultsImage, 
                 variable=self.var, label='Plot Frame', state=tk.DISABLED )
         self.FrameSlider.pack(side=BOTTOM, **pack_opts)
 
@@ -294,6 +294,19 @@ class GUI(tk.Frame):
             self.CamView = ImageTk.PhotoImage(self.CamView)
             self.canvas.itemconfig(self.ImageCanvas,image=self.CamView)
 
+    def RefreshResultsImage(self, *args):
+        fs = 40
+        FrameNumber = self.var.get()
+        frame_data = self.results.iloc[FrameNumber-1]
+        x = int(frame_data.O_Loc_X1)
+        y = int(frame_data.O_Loc_Y1)
+        self.PlotImage = Image.fromarray(
+                self.ImageStack[y-fs:y+fs,x-fs:x+fs,int(frame_data.Frame)])
+        self.PlotImage = self.PlotImage.resize((480,480), Image.NEAREST)
+        self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
+        self.display.config(image=self.PlotImage)
+
+
     def Threshold(self,event):
         self.ThresholdToggle = True
         self.ThresholdVariable.set(True)
@@ -325,23 +338,14 @@ class GUI(tk.Frame):
         Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
                 self.OBJECTLOC,self.REFERENCESTARLOC,
                 self.ThresholdNumber,self.Catalog)
-        # lightcurvepath= f'{self.FolderPath}/LightCurve.png'
-        # self.OG = Image.open(lightcurvepath)
-        # ResizedOG = self.OG.resize((660,140),Image.ANTIALIAS)
-        # self.IMG = ImageTk.PhotoImage(ResizedOG)
-        # self.LightCurve.config(image=self.IMG)
-        # self.runButton.configure(bg = 'white', fg='black')
-        MaxFrameNumber= len(glob.glob(f"{self.FolderPath}/ObjectPlot*.png"))
-        self.FrameSlider.config(to=MaxFrameNumber, state=tk.NORMAL)
         self.restartButton.configure(bg ='firebrick4')
         self.runButton.configure(text="Run")
 
-        FrameNumber = self.var.get()
-        PlotPath= f'{self.FolderPath}/ObjectPlot{FrameNumber:03}.png'
-        self.PlotImage = Image.open(PlotPath)
-        self.PlotImage = self.PlotImage.resize((480,480),Image.ANTIALIAS)
-        self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
-        self.display.config(image=self.PlotImage)
+        self.results = pd.read_csv(f'{self.FolderPath}/FitData.csv')
+        MaxFrameNumber = len(self.results)
+        self.FrameSlider.config(to=MaxFrameNumber, state=tk.NORMAL)
+        
+        self.RefreshResultsImage()
 
         self.updateLightCurve()
 
