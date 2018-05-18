@@ -325,7 +325,7 @@ def InitialRead(VideoName):
     return(ImageStack)
 
 def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, 
-        ThresholdNumber,TheCatalogMagnitude):
+        ThresholdNumber,TheCatalogMagnitude, PlotsToggle):
     global REFERENCESTARLOC
     global OBJECTLOC
     global REFERENCESTARAVGRADIUS
@@ -425,10 +425,11 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
 
         DataWriter(Datalist)
 
-        # PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
-                # img,Folder)
-        # PlottingCurve(XFitParametersRef, YFitParametersRef, 
-                # REFERENCESTARAVGRADIUS, img,Folder)
+        if PlotsToggle == True:
+            PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
+                img,Folder)
+            PlottingCurve(XFitParametersRef, YFitParametersRef, 
+                REFERENCESTARAVGRADIUS, img,Folder)
         Iteration += 1
 
     # ReferenceMagValue = np.mean(ReferenceMagValueList)

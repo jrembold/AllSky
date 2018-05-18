@@ -216,7 +216,22 @@ class GUI(tk.Frame):
         # self.LightCurve = tk.Label(Frame3, image="")
         # self.LightCurve.pack(side=LEFT)
 
+                ##################################################
+        Frame4 = tk.Frame(self)
+        Frame4.pack(fill=X) 
+        ##################################################
+        self.PlotsButton = tk.Button(Frame4, text="PLOTS", width=7)
+        self.PlotsButton.pack(side=LEFT)
 
+        self.PlotsVariable=tk.IntVar()
+        self.PlotsOn = tk.Radiobutton(Frame4, text="ON", 
+                variable=self.PlotsVariable, value=1, indicatoron=0, 
+                command=self.PlotsRadio)
+        self.PlotsOff = tk.Radiobutton(Frame4, 
+                text="OFF", variable=self.PlotsVariable, value=0, 
+                indicatoron=0, command=self.PlotsRadio)
+        self.PlotsOn.pack(side=LEFT,fill=Y)
+        self.PlotsOff.pack(side=LEFT,fill=Y)
 ##################################################
 # Functions
 ##################################################
@@ -275,6 +290,13 @@ class GUI(tk.Frame):
         if self.ThresholdSelection == 1:
             self.ThresholdToggle = True
         self.RefreshVideoImage()
+
+    def PlotsRadio(self):
+        self.PlotsSelection = self.PlotsVariable.get()
+        if self.PlotsSelection == 0:
+            self.PlotsToggle = False
+        if self.PlotsSelection == 1:
+            self.PlotsToggle = True
 
     def VideoLength(self,event):
         self.FrameNo = self.slidervar.get()
@@ -337,7 +359,7 @@ class GUI(tk.Frame):
         self.runButton.configure(text="Running")
         Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
                 self.OBJECTLOC,self.REFERENCESTARLOC,
-                self.ThresholdNumber,self.Catalog)
+                self.ThresholdNumber,self.Catalog, False)
         self.restartButton.configure(bg ='firebrick4')
         self.runButton.configure(text="Run")
 
