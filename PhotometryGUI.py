@@ -166,8 +166,11 @@ class GUI(tk.Frame):
         Frame2_3 = tk.Frame(Frame2)
         Frame2_3.pack(side=LEFT, **pack_opts)
 
-        self.display = tk.Label(Frame2_3, image="")
-        self.display.pack(side=TOP, **pack_opts)
+        self.ResultView = []
+        self.ResCanvas = tk.Canvas(Frame2_3, width=480, height=480, bg='black')
+        self.ResCanvas.pack(side=TOP, **pack_opts)
+        self.ResCanImg = self.ResCanvas.create_image(0,0, anchor=NW,
+                image=self.ResultView)
 
         self.var = tk.IntVar()
         self.FrameSlider = tk.Scale(Frame2_3, from_=1, to=2, 
@@ -296,11 +299,11 @@ class GUI(tk.Frame):
         frame_data = self.results.iloc[FrameNumber-1]
         x = int(frame_data.O_Loc_X1)
         y = int(frame_data.O_Loc_Y1)
-        self.PlotImage = Image.fromarray(
+        self.ResultView = Image.fromarray(
                 self.ImageStack[y-fs:y+fs,x-fs:x+fs,int(frame_data.Frame)])
-        self.PlotImage = self.PlotImage.resize((480,480), Image.NEAREST)
-        self.PlotImage = ImageTk.PhotoImage(self.PlotImage)
-        self.display.config(image=self.PlotImage)
+        self.ResultView = self.ResultView.resize((480,480), Image.NEAREST)
+        self.ResultView = ImageTk.PhotoImage(self.ResultView)
+        self.ResCanvas.itemconfig(self.ResCanImg, image=self.ResultView)
 
 
     def Threshold(self,event):
