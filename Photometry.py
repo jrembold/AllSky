@@ -376,17 +376,17 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
     # XFitParameters = (0,0,0)
 
     def DataWriter( df ):
-        df.loc[Iteration,'Frame'] = Iteration
-        df.loc[Iteration,'O_Loc_X1'] = OBJECTLOC[0]
-        df.loc[Iteration,'O_Loc_Y1'] = OBJECTLOC[1]
-        df.loc[Iteration,'R_Loc_X1'] = REFERENCESTARLOC[0]
-        df.loc[Iteration,'R_Loc_Y1'] = REFERENCESTARLOC[1]
-        df.loc[Iteration,'O_Gauss_Px'] = XFitParametersObj[1]
-        df.loc[Iteration,'O_Gauss_Ax'] = XFitParametersObj[0]
-        df.loc[Iteration,'O_Gauss_Sx'] = XFitParametersObj[2]
-        df.loc[Iteration,'O_Gauss_Py'] = YFitParametersObj[1]
-        df.loc[Iteration,'O_Gauss_Ay'] = YFitParametersObj[0]
-        df.loc[Iteration,'O_Gauss_Sy'] = YFitParametersObj[2]
+        df.loc[Iteration+StartFrame,'Frame'] = Iteration+StartFrame
+        df.loc[Iteration+StartFrame,'O_Loc_X1'] = OBJECTLOC[0]
+        df.loc[Iteration+StartFrame,'O_Loc_Y1'] = OBJECTLOC[1]
+        df.loc[Iteration+StartFrame,'R_Loc_X1'] = REFERENCESTARLOC[0]
+        df.loc[Iteration+StartFrame,'R_Loc_Y1'] = REFERENCESTARLOC[1]
+        df.loc[Iteration+StartFrame,'O_Gauss_Px'] = XFitParametersObj[1]
+        df.loc[Iteration+StartFrame,'O_Gauss_Ax'] = XFitParametersObj[0]
+        df.loc[Iteration+StartFrame,'O_Gauss_Sx'] = XFitParametersObj[2]
+        df.loc[Iteration+StartFrame,'O_Gauss_Py'] = YFitParametersObj[1]
+        df.loc[Iteration+StartFrame,'O_Gauss_Ay'] = YFitParametersObj[0]
+        df.loc[Iteration+StartFrame,'O_Gauss_Sy'] = YFitParametersObj[2]
         
 
 
