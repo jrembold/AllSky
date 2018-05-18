@@ -53,6 +53,7 @@ class GUI(tk.Frame):
         self.FrameNo = 1
         self.ThresholdCompleted = False
         self.ChoiceToggle = False
+        self.startingframe = 0
         # Frame01 = tk.Frame(self)
         # Frame01.pack(fill=X)
 
@@ -156,7 +157,7 @@ class GUI(tk.Frame):
         self.slidervar = tk.IntVar()
         self.InitialSlider = tk.Scale(Frame2_2, from_=0, to=100, 
                 orient=HORIZONTAL, label='Frame Slider', 
-                command=self.VideoLength, variable=self.slidervar,length=720)
+                command=self.RefreshVideoImage, variable=self.slidervar,length=720)
         self.InitialSlider.pack(side=TOP)
 
 
@@ -249,7 +250,8 @@ class GUI(tk.Frame):
 
 
     def ObjectCoordinates(self,event):
-        self.ObjectLabel.configure(text=f"Object: ({event.x},{event.y})")
+        self.startingframe = self.slidervar.get()
+        self.ObjectLabel.configure(text=f"Object: ({event.x},{event.y})\nStarting: {self.startingframe}")
         self.OBJECTLOC = (event.x,event.y)
         self.ObjectLabel.configure(bg ='firebrick4',fg ='black')
         self.ObjectClick = True
@@ -275,11 +277,9 @@ class GUI(tk.Frame):
             self.ThresholdToggle = True
         self.RefreshVideoImage()
 
-    def VideoLength(self,event):
-        self.FrameNo = self.slidervar.get()
-        self.RefreshVideoImage()
 
-    def RefreshVideoImage(self):
+    def RefreshVideoImage(self, *args):
+        self.FrameNo = self.slidervar.get()
         if self.ThresholdToggle:
             self.ThresholdNumber = self.thresholdvar.get()
             ThresholdView = Photometry.Threshold(self.ImageStack[:,:,self.FrameNo], 
@@ -305,6 +305,9 @@ class GUI(tk.Frame):
         self.ResultView = ImageTk.PhotoImage(self.ResultView)
         self.ResCanvas.itemconfig(self.ResCanImg, image=self.ResultView)
 
+        self.slidervar.set(self.var.get()+self.startingframe)
+        self.RefreshVideoImage()
+
         s = max(frame_data.O_Gauss_Sx, frame_data.O_Gauss_Sy)
         scalef = 480/fs
         self.ResCanvas.delete(self.objcirc, self.backcirc)
@@ -313,6 +316,9 @@ class GUI(tk.Frame):
         backrad = (3*s+6)*scalef
         self.backcirc = self.ResCanvas.create_oval(240-backrad, 240-backrad,
                 240+backrad, 240+backrad, outline='firebrick4')
+
+        self.plotframeind.set_xdata(FrameNumber/29.97)
+        self.fig.canvas.draw()
 
     def Threshold(self,event):
         self.ThresholdToggle = True
@@ -342,7 +348,7 @@ class GUI(tk.Frame):
         # Run script
         self.Catalog = self.CatalogValue.get()
         self.runButton.configure(text="Running")
-        Photometry.main(self.VideoName,self.FolderPath,self.FrameNo,
+        Photometry.main(self.VideoName,self.FolderPath,self.startingframe,
                 self.OBJECTLOC,self.REFERENCESTARLOC,
                 self.ThresholdNumber,self.Catalog, False)
         self.restartButton.configure(bg ='firebrick4')
@@ -355,15 +361,17 @@ class GUI(tk.Frame):
        
         self.objcirc = self.ResCanvas.create_oval(0, 0, 0, 0, outline='green')
         self.backcirc = self.ResCanvas.create_oval(0, 0, 0, 0, outline='firebrick4')
+        
+        self.updateLightCurve()
         self.RefreshResultsImage()
 
-        self.updateLightCurve()
 
     def updateLightCurve(self, *args):
         df = pd.read_csv(f'{self.FolderPath}/Magnitudes.csv')
         self.plt.clear()
         self.fig.gca().invert_yaxis()
         self.plt.plot(df.Time, df.Object, color='red')
+        self.plotframeind = self.plt.axvline(0,color='green')
         self.plt.set_xlabel('Time (s)')
         self.plt.set_ylabel('Magnitude')
         self.fig.canvas.draw()
