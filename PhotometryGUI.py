@@ -305,6 +305,14 @@ class GUI(tk.Frame):
         self.ResultView = ImageTk.PhotoImage(self.ResultView)
         self.ResCanvas.itemconfig(self.ResCanImg, image=self.ResultView)
 
+        s = max(frame_data.O_Gauss_Sx, frame_data.O_Gauss_Sy)
+        scalef = 480/fs
+        self.ResCanvas.delete(self.objcirc, self.backcirc)
+        self.objcirc = self.ResCanvas.create_oval(240-3*s*scalef, 240-3*s*scalef,
+                240+3*s*scalef, 240+3*s*scalef, outline='green')
+        backrad = (3*s+6)*scalef
+        self.backcirc = self.ResCanvas.create_oval(240-backrad, 240-backrad,
+                240+backrad, 240+backrad, outline='firebrick4')
 
     def Threshold(self,event):
         self.ThresholdToggle = True
@@ -343,7 +351,10 @@ class GUI(tk.Frame):
         self.results = pd.read_csv(f'{self.FolderPath}/FitData.csv')
         MaxFrameNumber = len(self.results)
         self.FrameSlider.config(to=MaxFrameNumber, state=tk.NORMAL)
-        
+       
+       
+        self.objcirc = self.ResCanvas.create_oval(0, 0, 0, 0, outline='green')
+        self.backcirc = self.ResCanvas.create_oval(0, 0, 0, 0, outline='firebrick4')
         self.RefreshResultsImage()
 
         self.updateLightCurve()
