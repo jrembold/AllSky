@@ -324,7 +324,7 @@ def InitialRead(VideoName):
     return(ImageStack)
 
 def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation, 
-        ThresholdNumber,TheCatalogMagnitude):
+        ThresholdNumber,TheCatalogMagnitude, PlotsToggle):
     global REFERENCESTARLOC
     global OBJECTLOC
     global REFERENCESTARAVGRADIUS
@@ -408,10 +408,10 @@ def main(vid_name,Folder,StartFrame, objectlocation, referencestarlocation,
         if ObjectMagValue < 0:
             ObjectMagValue = 0
         ObjectMagValueList.append(ObjectMagValue)
-
-        PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
+        if PlotsToggle == True:
+            PlottingCurve(XFitParametersObj, YFitParametersObj, OBJECTAVGRADIUS, 
                 img,Folder)
-        PlottingCurve(XFitParametersRef, YFitParametersRef, 
+            PlottingCurve(XFitParametersRef, YFitParametersRef, 
                 REFERENCESTARAVGRADIUS, img,Folder)
         Iteration += 1
 
