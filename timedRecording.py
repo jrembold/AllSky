@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Wed 30 May 2018 02:27:32 PM PDT
+# Last Modified: Wed 30 May 2018 02:42:55 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -74,7 +74,8 @@ def main():
     #Wake up and start!
     print('\n---- Video recording starting! ----')
     kcw, cam = initializeVideo()
-    (grabbed, frame) = cam.read()
+    for i in range(10):
+        (grabbed, frame) = cam.read()
 
     while datetime.now() <= endtime:
         (grabbed, frame) = cam.read()
