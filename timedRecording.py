@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Wed 30 May 2018 02:42:55 PM PDT
+# Last Modified: Thu 31 May 2018 04:05:06 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -49,7 +49,7 @@ def initializeVideo():
 
 def printTimeRemaining(endtime):
     timeleft = (endtime - datetime.now()).total_seconds()
-    if not int(timeleft) % 5:
+    if not round(timeleft,1) % 1:
         print(f'\rRecording Time Left: {int(timeleft):5} seconds', end='', flush=True)
         # print('\rTime left: {} seconds'.format(int(timeleft)), end='', flush=True)
 
@@ -65,17 +65,17 @@ def main():
     print(f'Recording to start at: {datetime.strftime(starttime,"%Y/%m/%d %I:%M:%S")}')
     print(f'Recording to end at:   {datetime.strftime(endtime,"%Y/%m/%d %I:%M:%S")}')
 
+    kcw, cam = initializeVideo()
+
     #Sleep until starting time, periodically checking time
     while starttime > datetime.now():
         timetill = (starttime - datetime.now()).total_seconds()
-        print(f'\rTime until recording begins: {int(timetill):5} seconds', end='', flush=True)
-        time.sleep(5)
+        _, frame = cam.read()
+        if not round(timetill,1) % 1:
+            print(f'\rTime until recording begins: {int(timetill):5} seconds', end='', flush=True)
 
     #Wake up and start!
     print('\n---- Video recording starting! ----')
-    kcw, cam = initializeVideo()
-    for i in range(10):
-        (grabbed, frame) = cam.read()
 
     while datetime.now() <= endtime:
         (grabbed, frame) = cam.read()
@@ -89,6 +89,7 @@ def main():
 
 
     #All done! Shut things down!
+    print('')
     kcw.finish()
 
 if __name__ == '__main__':
