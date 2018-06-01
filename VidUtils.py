@@ -88,6 +88,7 @@ class VideoStream:
         self.grabbed, self.frame = self.stream.read()
         # Stopping variable
         self.stopped = False
+        self.Q = Queue()
 
     def start(self):
         # Start the thread to read from video stream
@@ -102,11 +103,15 @@ class VideoStream:
                 return
 
             # Else, read next frame from stream
-            self.grabbed, self.frame = self.stream.read()
+            # self.grabbed, self.frame = self.stream.read()
+            self.Q.put(self.stream.read()[1])
+            # self.Q.put(self.frame)
 
     def read(self):
         # Return latest frame
-        return self.frame
+        while True:
+            if not self.Q.empty():
+                return self.Q.get()
 
     def stop(self):
         # Indicate the thread should be stopped

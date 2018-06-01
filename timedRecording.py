@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Thu 31 May 2018 04:05:06 PM PDT
+# Last Modified: Thu 31 May 2018 05:26:32 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -29,7 +29,7 @@ import time
 
 def initializeVideo():
     kcw = KeyClipWriter()
-    cam = VideoStream()
+    cam = VideoStream().start()
     return kcw, cam
 
 # def checkTimeInInterval(starttime, endtime):
@@ -71,7 +71,7 @@ def main():
     #Sleep until starting time, periodically checking time
     while starttime > datetime.now():
         timetill = (starttime - datetime.now()).total_seconds()
-        _, frame = cam.read()
+        frame = cam.read()
         if not round(timetill,1) % 1:
             print(f'\rTime until recording begins: {int(timetill):5} seconds', end='', flush=True)
 
@@ -79,7 +79,7 @@ def main():
     print('\n---- Video recording starting! ----')
 
     while datetime.now() <= endtime:
-        (grabbed, frame) = cam.read()
+        frame = cam.read()
         kcw.update(frame)
 
         if not kcw.recording:
