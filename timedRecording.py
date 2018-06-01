@@ -6,7 +6,7 @@
 #
 # Creation Date: 05-06-2017
 #
-# Last Modified: Mon 05 Jun 2017 05:08:07 PM PDT
+# Last Modified: Thu 31 May 2018 04:05:06 PM PDT
 #
 # Created by: Jed Rembold
 #
@@ -32,27 +32,27 @@ def initializeVideo():
     cam = VideoStream()
     return kcw, cam
 
-def checkTimeInInterval(starttime, endtime):
-    start = parser.parse(starttime)
-    end = parser.parse(endtime)
-    if start < datetime.now() < end:
-        return True
-    else:
-        return False
+# def checkTimeInInterval(starttime, endtime):
+    # start = parser.parse(starttime)
+    # end = parser.parse(endtime)
+    # if start < datetime.now() < end:
+        # return True
+    # else:
+        # return False
 
-def isTimeBeforeStart(starttime):
-    start = parser.parse(starttime)
-    return datetime.now() < start
+# def isTimeBeforeStart(starttime):
+    # start = parser.parse(starttime)
+    # return datetime.now() < start
 
-def isTimeAfterEnd(endtime):
-    end = parser.parse(endtime)
-    return datetime.now() > end
+# def isTimeAfterEnd(endtime):
+    # end = parser.parse(endtime)
+    # return datetime.now() > end
 
 def printTimeRemaining(endtime):
-    end = parser.parse(endtime)
-    timeleft = (end - datetime.now()).total_seconds()
-    if not int(timeleft) % 5:
-        print('\rTime left: {} seconds'.format(int(timeleft)), end='', flush=True)
+    timeleft = (endtime - datetime.now()).total_seconds()
+    if not round(timeleft,1) % 1:
+        print(f'\rRecording Time Left: {int(timeleft):5} seconds', end='', flush=True)
+        # print('\rTime left: {} seconds'.format(int(timeleft)), end='', flush=True)
 
 def main():
     ap = argparse.ArgumentParser()
@@ -61,15 +61,24 @@ def main():
     ap.add_argument('-o', '--output', help='Path to save video to')
     args = vars(ap.parse_args())
 
+    starttime = parser.parse(args['start'])
+    endtime = parser.parse(args['end'])
+    print(f'Recording to start at: {datetime.strftime(starttime,"%Y/%m/%d %I:%M:%S")}')
+    print(f'Recording to end at:   {datetime.strftime(endtime,"%Y/%m/%d %I:%M:%S")}')
+
+    kcw, cam = initializeVideo()
+
     #Sleep until starting time, periodically checking time
-    while isTimeBeforeStart(args['start']):
-        time.sleep(5)
+    while starttime > datetime.now():
+        timetill = (starttime - datetime.now()).total_seconds()
+        _, frame = cam.read()
+        if not round(timetill,1) % 1:
+            print(f'\rTime until recording begins: {int(timetill):5} seconds', end='', flush=True)
 
     #Wake up and start!
-    kcw, cam = initializeVideo()
-    (grabbed, frame) = cam.read()
+    print('\n---- Video recording starting! ----')
 
-    while not isTimeAfterEnd(args['end']):
+    while datetime.now() <= endtime:
         (grabbed, frame) = cam.read()
         kcw.update(frame)
 
@@ -77,10 +86,11 @@ def main():
             path = "{}/{}.avi".format(args['output'], datetime.now().strftime('%Y%m%d_%H%M%S'))
             kcw.start(path, cv2.VideoWriter_fourcc(*'FFV1'), 30)
 
-        printTimeRemaining(args['end'])
+        printTimeRemaining(endtime)
 
 
     #All done! Shut things down!
+    print('')
     kcw.finish()
     cam.stop()
 
