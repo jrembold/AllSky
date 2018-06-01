@@ -20,7 +20,8 @@ flares) for finetuning of analysis and capture software.
 '''
 
 import argparse
-from KeyClipWriter import KeyClipWriter
+from VidUtils import KeyClipWriter
+from VidUtils import VideoStream
 from datetime import datetime, timedelta
 from dateutil import parser
 import cv2
@@ -28,7 +29,7 @@ import time
 
 def initializeVideo():
     kcw = KeyClipWriter()
-    cam = cv2.VideoCapture(0)
+    cam = VideoStream()
     return kcw, cam
 
 def checkTimeInInterval(starttime, endtime):
@@ -81,6 +82,8 @@ def main():
 
     #All done! Shut things down!
     kcw.finish()
+    cam.stop()
+
 
 if __name__ == '__main__':
     main()

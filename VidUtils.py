@@ -81,4 +81,35 @@ class KeyClipWriter:
         self.flush()
         self.writer.release()
 
+class VideoStream:
+    def __init__(self, src=0):
+        # Initialize and read first frame
+        self.stream = cv2.VideoCapture(src)
+        self.grabbed, self.frame = self.stream.read()
+        # Stopping variable
+        self.stopped = False
+
+    def start(self):
+        # Start the thread to read from video stream
+        Thread(target=self.update, args=()).start()
+        return self
+
+    def update(self):
+        # Loop forever until stopped
+        while True:
+            # Break out if stopped
+            if self.stopped:
+                return
+
+            # Else, read next frame from stream
+            self.grabbed, self.frame = self.stream.read()
+
+    def read(self):
+        # Return latest frame
+        return self.frame
+
+    def stop(self):
+        # Indicate the thread should be stopped
+        self.stopped = True
+
 
