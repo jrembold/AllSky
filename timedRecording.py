@@ -51,8 +51,8 @@ def initializeVideo():
 def printTimeRemaining(endtime):
     timeleft = (endtime - datetime.now()).total_seconds()
     if not round(timeleft,1) % 1:
-        print(f'\rRecording Time Left: {int(timeleft):5} seconds', end='', flush=True)
-        # print('\rTime left: {} seconds'.format(int(timeleft)), end='', flush=True)
+        # print(f'\rRecording Time Left: {int(timeleft):5} seconds', end='', flush=True)
+        print('\rTime left: {:5} seconds'.format(int(timeleft)), end='', flush=True)
 
 def main():
     ap = argparse.ArgumentParser()
@@ -63,8 +63,10 @@ def main():
 
     starttime = parser.parse(args['start'])
     endtime = parser.parse(args['end'])
-    print(f'Recording to start at: {datetime.strftime(starttime,"%Y/%m/%d %I:%M:%S")}')
-    print(f'Recording to end at:   {datetime.strftime(endtime,"%Y/%m/%d %I:%M:%S")}')
+    # print(f'Recording to start at: {datetime.strftime(starttime,"%Y/%m/%d %I:%M:%S")}')
+    # print(f'Recording to end at:   {datetime.strftime(endtime,"%Y/%m/%d %I:%M:%S")}')
+    print('Recording to start at: {}'.format(datetime.strftime(starttime,"%Y/%m/%d %I:%M:%S")))
+    print('Recording to end at: {}'.format(datetime.strftime(endtime,"%Y/%m/%d %I:%M:%S")))
 
     kcw, cam = initializeVideo()
 
@@ -73,7 +75,8 @@ def main():
         timetill = (starttime - datetime.now()).total_seconds()
         frame = cam.read()
         if not round(timetill,1) % 1:
-            print(f'\rTime until recording begins: {int(timetill):5} seconds', end='', flush=True)
+            # print(f'\rTime until recording begins: {int(timetill):5} seconds', end='', flush=True)
+            print('\rTime until recording begins: {:5} seconds'.format(int(timetill)), end='', flush=True)
 
     #Wake up and start!
     print('\n---- Video recording starting! ----')
