@@ -29,7 +29,7 @@ import time
 
 def initializeVideo():
     kcw = KeyClipWriter()
-    cam = VideoStream().start()
+    cam = VideoStream(src=0).start()
     return kcw, cam
 
 # def checkTimeInInterval(starttime, endtime):
