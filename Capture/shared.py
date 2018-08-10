@@ -18,6 +18,7 @@ SAVELOC = None
 STARTTIME = None
 ENDTIME = None
 FRAMERATE = None
+SRC = 0
 
 class DETECT:
     LENGTH = 4
