@@ -88,7 +88,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
     # Saved video or live video?
     if vpath is None:
         # Must be live video
-        cam = cv2.VideoCapture(0)
+        cam = cv2.VideoCapture(shared.SRC)
         time.sleep(1.0)
     else:
         # Must be saved video
