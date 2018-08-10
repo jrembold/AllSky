@@ -1,3 +1,11 @@
+"""
+Script for onscreen video monitoring. Displays
+the current video to screen with timestamp and
+instructions. Does NOT attempt to save or write
+the video. For monitoring or focusing purposes
+only!
+"""
+
 import cv2
 import numpy as np
 from datetime import datetime as dt
