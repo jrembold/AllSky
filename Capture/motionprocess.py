@@ -13,7 +13,7 @@
 #===================================================
 
 import argparse
-from KeyClipWriter import KeyClipWriter
+from VidUtils import KeyClipWriter
 import datetime
 import time
 import os
