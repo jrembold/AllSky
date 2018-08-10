@@ -1,3 +1,10 @@
+"""
+Simple script to capture video to a timestamped
+file. Starts when the script is run and terminates
+when the 'q' key is pressed. Writes a timestamp to
+the bottom of the video as well.
+"""
+
 import cv2
 import numpy as np
 from datetime import datetime as dt
