@@ -24,12 +24,27 @@ from threading import Thread
 import shared
 
 
-# Shared Definitions
-shared.RUNNING = False
-shared.ANALYZE_ON = False
-shared.STARTTIME = 5
-shared.ENDTIME = 22
-shared.SAVELOC = '/home/jedediah/Video/Testing'
+# Template for shared config file writing
+template = """'''
+Shared config file for gui and
+motionprocess to read and write to.
+'''
+
+RUNNING = False
+ANALYZE_ON = False
+SAVELOC = '{loc}'
+STARTTIME = {stime}
+ENDTIME = {etime}
+FRAMERATE = 0
+SRC = {src}
+
+class DETECT:
+    LENGTH = {len}
+    ANGLES = {angs}
+    THRESHOLD = {thresh}
+    MINLINE = {mlin}
+    LINESKIP = {lskip}
+"""
 
 # Globals
 mainprog = None #Needs to be global so that subsequent
@@ -47,6 +62,22 @@ logging.basicConfig(
         # filemode = 'w',
         )
 
+def writeConfig():
+
+    with open('shared.py', 'w') as f:
+        content = {
+                'loc': shared.SAVELOC,
+                'stime': shared.STARTTIME,
+                'etime': shared.ENDTIME,
+                'src': shared.SRC,
+                'len': shared.DETECT.LENGTH,
+                'angs': shared.DETECT.ANGLES,
+                'thresh': shared.DETECT.THRESHOLD,
+                'mlin': shared.DETECT.MINLINE,
+                'lskip': shared.DETECT.LINESKIP,
+                }
+        f.write(template.format(**content))
+
 def handle_keypress(key):
     '''
     Function to handle all keypresses on terminal
@@ -55,6 +86,7 @@ def handle_keypress(key):
     global mainprog
 
     if key in ('q', 'Q'):
+        writeConfig()
         raise urwid.ExitMainLoop()
 
     if key in ('1'):
