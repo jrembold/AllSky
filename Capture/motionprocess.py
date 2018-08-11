@@ -39,17 +39,16 @@ def takeSnapshot(path):
         while (grabbed and shared.ANALYZE_ON):
             date_num = datetime.datetime.utcnow()
             date_str = date_num.strftime("%Y%m%d_%H%M%S")
-            # cv2.imwrite(path + "/Snap_" + date_str + ".png", frame)
             if gray is not None:
                 savefile = gray
-                for i in range(10):
-                    newframe = gray
-                    savefile = cv2.add(cv2.subtract(savefile,savefile.mean()), cv2.subtract(newframe, newframe.mean()))
+                # for i in range(10):
+                    # newframe = gray
+                    # savefile = cv2.add(cv2.subtract(savefile,savefile.mean()), cv2.subtract(newframe, newframe.mean()))
                 savefile = cv2.cvtColor(savefile, cv2.COLOR_GRAY2BGR)
                 cv2.imwrite(path + '/'+ date_str + "_Snap.png", savefile)
                 logging.info('Snapshot!!')
-            time.sleep(30) #Sleep 30 mins
-        time.sleep(10) #In analysis off, wait 10 minutes then check again
+            time.sleep(30*60) #Sleep 30 mins
+        time.sleep(5*60) #If analysis off, wait 10 minutes then check again
 
 def weightaccum( old_frame, new_frame, weight ):
     ''' Function calculates an accumulated weighted average. This function
