@@ -206,7 +206,7 @@ def updatestatus(loop, userdat):
         st_diskspace.set_text(['Free Space: ', ('alert', 'File not found!\n')])
 
     #Update Frame Rate
-    if shared.ANALYZE_ON:
+    if shared.ANALYZE_ON and shared.FRAMERATE:
         st_framerate.set_text(['Frame Rate: ', ('info',  '{:0.2f}'.format(shared.FRAMERATE))])
     else:
         st_framerate.set_text(['Frame Rate: ', ('alert', 'N/A')])
