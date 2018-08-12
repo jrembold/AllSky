@@ -40,11 +40,11 @@ def takeSnapshot(path):
             date_num = datetime.datetime.utcnow()
             date_str = date_num.strftime("%Y%m%d_%H%M%S")
             if gray is not None:
-                savefile = gray
+                savefile = frame
                 # for i in range(10):
                     # newframe = gray
                     # savefile = cv2.add(cv2.subtract(savefile,savefile.mean()), cv2.subtract(newframe, newframe.mean()))
-                savefile = cv2.cvtColor(savefile, cv2.COLOR_GRAY2BGR)
+                # savefile = cv2.cvtColor(savefile, cv2.COLOR_GRAY2BGR)
                 cv2.imwrite(path + '/'+ date_str + "_Snap.png", savefile)
                 logging.info('Snapshot!!')
             time.sleep(30*60) #Sleep 30 mins
@@ -82,7 +82,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
     checks for objects, opens threads to save the data if an object is
     found. '''
 
-    global grabbed, gray
+    global grabbed, gray, frame
 
     # Saved video or live video?
     if vpath is None:
