@@ -39,7 +39,7 @@ def takeSnapshot(path):
         while (grabbed and shared.ANALYZE_ON):
             date_num = datetime.datetime.utcnow()
             date_str = date_num.strftime("%Y%m%d_%H%M%S")
-            if gray is not None:
+            if frame is not None:
                 savefile = frame
                 # for i in range(10):
                     # newframe = gray
