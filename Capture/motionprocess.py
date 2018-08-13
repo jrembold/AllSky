@@ -201,7 +201,8 @@ def analyze(buffsize, savepath, headless, vpath=None ):
                         # print("New event found at time: {}".format(date_str))
                         p = "{}/{}.avi".format(savepath, date_num.strftime("%Y%m%d_%H%M%S_%f"))
                         # kcw.start(p, cv2.VideoWriter_fourcc(*'H264'), 30)
-                        kcw.start(p, cv2.VideoWriter_fourcc(*'FFV1'), 30)
+                        # kcw.start(p, cv2.VideoWriter_fourcc(*'FFV1'), 30)
+                        kcw.start(p, cv2.VideoWriter_fourcc(*'XVID'), 30)
                         # kcw.start(p, cv2.VideoWriter_fourcc(*'HFYU'), 30)
                         logging.info("New event detected. Video name: {}".format(p))
                     else:
