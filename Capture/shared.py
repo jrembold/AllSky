@@ -12,8 +12,8 @@ FRAMERATE = 0
 SRC = 0
 
 class DETECT:
-    LENGTH = 4
+    LENGTH = 6
     ANGLES = 0.1
-    THRESHOLD = 20
-    MINLINE = 10
-    LINESKIP = 3
+    THRESHOLD = 35
+    MINLINE = 20
+    LINESKIP = 8
