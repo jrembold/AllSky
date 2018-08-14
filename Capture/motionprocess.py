@@ -22,12 +22,39 @@ import logging
 import shutil
 import numpy as np
 import cv2
-import cProfile
+import csv
+import string
+# import cProfile
 from threading import Thread
 
 import shared
 
 
+def next_id(prev_id:string):
+    old = base36decode(prev_id)
+    return base36encode(old+1)
+
+def base36encode(number:int):
+    if not isinstance(number, int):
+        raise TypeError('Number must be an integer')
+
+    if number < 0:
+        raise ValueError('Number must be positive')
+
+    alphabet = string.digits + string.ascii_uppercase
+    base36 = ''
+
+    if 0 <= number < len(alphabet):
+        return alphabet[number].rjust(3,'0')
+
+    while number != 0:
+        number, i = divmod(number, len(alphabet))
+        base36 = alphabet[i] + base36
+
+    return base36.rjust(3,'0')
+
+def base36decode(input:string):
+    return int(input, 36)
 
 def takeSnapshot(path):
     '''
@@ -74,6 +101,28 @@ def drawBoundingHough(frame, x1, x2, y1, y2 ):
     p2x = min(midx+size, frame.shape[1])
     p2y = min(midy+size, frame.shape[0])
     cv2.rectangle(frame, (p1x, p1y), (p2x,p2y), 255, 1)
+
+
+def get_Hough_Avg_Pt(lines):
+    x1, y1, x2, y2 = lines[0]
+    return ( int((x1+x2)/2), int((y1+y2)/2) )
+
+
+def write_to_table(pos:'(x,y)'):
+    with open('Obs_Table.csv', 'r') as f:
+        row = next(reversed(list(csv.reader(f))))
+        code = row[0]
+
+    params = {
+            'code': next_id(code),
+            'local': dt.strftime(dt.now(), "%Y%m%d %H:%M:%S"),
+            'utc': dt.strftime(dt.utcnow(), "%Y%m%d %H:%M:%S"),
+            'ptx': pos[0],
+            'pty': pos[1],
+            }
+
+    with open('Obs_Table.csv', 'a') as f:
+        f.write('{code},{local},{utc},{ptx},{pty}\n'.format(**params))
 
 
 def analyze(buffsize, savepath, headless, vpath=None ):
@@ -190,6 +239,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
                         #drawBoundingHough(R, 2*x1, 2*x2, 2*y1, 2*y2)
                 updateConsecFrames = False
                 consecFrames = 0
+                write_to_table(get_Hough_Avg_Pt(lines))
 
 
                 # If not already recording, start the recording!
