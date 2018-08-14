@@ -239,7 +239,6 @@ def analyze(buffsize, savepath, headless, vpath=None ):
                         #drawBoundingHough(R, 2*x1, 2*x2, 2*y1, 2*y2)
                 updateConsecFrames = False
                 consecFrames = 0
-                write_to_table(get_Hough_Avg_Pt(lines))
 
 
                 # If not already recording, start the recording!
@@ -249,12 +248,13 @@ def analyze(buffsize, savepath, headless, vpath=None ):
                     # If we have more than 500MB available, go ahead and start the recording, else stop program
                     if free_space > 500:
                         # print("New event found at time: {}".format(date_str))
-                        p = "{}/{}.avi".format(savepath, date_num.strftime("%Y%m%d_%H%M%S_%f"))
+                        p = "{}/{}.avi".format(savepath, date_num.strftime("%Y%m%d_%H%M%S"))
                         # kcw.start(p, cv2.VideoWriter_fourcc(*'H264'), 30)
                         # kcw.start(p, cv2.VideoWriter_fourcc(*'FFV1'), 30)
                         kcw.start(p, cv2.VideoWriter_fourcc(*'XVID'), 30)
                         # kcw.start(p, cv2.VideoWriter_fourcc(*'HFYU'), 30)
                         logging.info("New event detected. Video name: {}".format(p))
+                        write_to_table(get_Hough_Avg_Pt(lines[0]))
                     else:
                         logging.warning("Terminating observation run due to lack of storage")
                         disk_full = True
