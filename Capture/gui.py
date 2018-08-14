@@ -56,8 +56,8 @@ logging.basicConfig(
         filename = 'Observation_Log.txt',
         level = logging.DEBUG,
         style = '{',
-        format = '[{asctime}.{msecs:<3.0f}] \
-                  [{levelname:^8}]: {message}',
+        format = '[{asctime}.{msecs:<3.0f}] ' +
+                 '[{levelname:^8}]: {message}',
         datefmt = '%Y/%m/%d %H:%M:%S',
         # filemode = 'w',
         )
