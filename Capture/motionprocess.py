@@ -14,7 +14,7 @@
 
 import argparse
 from VidUtils import KeyClipWriter
-import datetime
+from datetime import datetime as dt
 import time
 import os
 import sys
@@ -37,7 +37,7 @@ def takeSnapshot(path):
     '''
     while True:
         while (grabbed and shared.ANALYZE_ON):
-            date_num = datetime.datetime.utcnow()
+            date_num = dt.utcnow()
             date_str = date_num.strftime("%Y%m%d_%H%M%S")
             if frame is not None:
                 savefile = frame
@@ -176,7 +176,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
             accum_thresh = cv2.threshold(accum, 10, 255, cv2.THRESH_BINARY)[1]
 
             # Writing date and time in UTC to lower left corner of output frame in green
-            date_num = datetime.datetime.utcnow()
+            date_num = dt.utcnow()
             date_str = date_num.strftime("%Y%m%d %H%M%S.%f")
             cv2.putText(B, date_str + " UTC", (10, B.shape[0]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, 255)
 
