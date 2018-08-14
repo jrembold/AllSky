@@ -73,7 +73,7 @@ def takeSnapshot(path):
                     # savefile = cv2.add(cv2.subtract(savefile,savefile.mean()), cv2.subtract(newframe, newframe.mean()))
                 # savefile = cv2.cvtColor(savefile, cv2.COLOR_GRAY2BGR)
                 cv2.imwrite(path + '/'+ date_str + "_Snap.png", savefile)
-                logging.info('Snapshot!!')
+                logging.info('Taking Snapshot: {}_Snap.png'.format(date_str))
             time.sleep(30*60) #Sleep 30 mins
         time.sleep(5*60) #If analysis off, wait 10 minutes then check again
 
