@@ -316,6 +316,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
 
         if not shared.RUNNING:
             shared.ANALYZE_ON = False
+            logging.info("Analysis has been stopped manually.")
             break
 
         if disk_full:
