@@ -3,6 +3,7 @@ from collections import deque
 from threading import Thread
 from queue import Queue
 import time
+import os
 import cv2
 
 class KeyClipWriter:
@@ -18,6 +19,7 @@ class KeyClipWriter:
         self.writer = None
         self.thread = None
         self.recording = False
+        self.outputPath = None
 
 
     def update(self, frame):
@@ -32,6 +34,7 @@ class KeyClipWriter:
     def start(self, outputPath, fourcc, fps):
         # Set recording flag
         self.recording = True
+        self.outputPath = outputPath
         # Initialize writer
         self.writer = cv2.VideoWriter(outputPath, fourcc, fps, (self.frames[0].shape[1], self.frames[0].shape[0]), True)
         # Initialize queue of frames to be written
@@ -80,6 +83,14 @@ class KeyClipWriter:
         self.thread.join()
         self.flush()
         self.writer.release()
+
+
+    def terminate(self):
+        self.recording = False
+        self.thread.join()
+        self.writer.release()
+        os.remove(self.outputPath)
+
 
 class VideoStream:
     def __init__(self, src=0):

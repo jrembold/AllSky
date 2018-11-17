@@ -153,6 +153,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
     logging.info("Clips saved to {}".format(savepath))
 
     disk_full = False
+    vidFrames = 0
 
     # Grab one frame to initialize 
     (grabbed, frame) = cam.read()
@@ -267,6 +268,12 @@ def analyze(buffsize, savepath, headless, vpath=None ):
             #Wrapping things up
             if updateConsecFrames:
                 consecFrames += 1
+                vidFrames = 0
+            else:
+                vidFrames += 1
+                if vidFrames > 100:
+                    kcw.terminate()
+                    logging.warning("Event was too long and was terminated early as false positive.")
 
             #Update buffer with latest frame
             kcw.update(output)
