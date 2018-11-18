@@ -233,7 +233,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
             # The Hough Transform
             lines = cv2.HoughLinesP( accum_thresh, shared.DETECT.LENGTH, shared.DETECT.ANGLES, shared.DETECT.THRESHOLD, shared.DETECT.MINLINE, shared.DETECT.LINESKIP )
             # If we detect lines, draw a box around each one and initialize or perpetuate recording
-            if lines is not None:
+            if lines is not None and len(lines)<50:
                 # for eachline in lines:
                     # for x1, y1, x2, y2 in eachline:
                         # Bounding box edges multiplied by 2 to account for dimension reduction earlier
@@ -274,6 +274,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
                 if vidFrames > 100:
                     kcw.terminate()
                     logging.warning("Event was too long and was terminated early as false positive.")
+
 
             #Update buffer with latest frame
             kcw.update(output)
