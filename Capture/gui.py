@@ -91,7 +91,7 @@ def handle_keypress(key):
 
     if key in ('1'):
         mainprog = Thread(target=motionprocess.analyze,
-                args=(32,shared.SAVELOC,True))
+                args=(64,shared.SAVELOC,True))
         mainprog.daemon = True
         mainprog.start()
         shared.RUNNING = True
