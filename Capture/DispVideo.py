@@ -27,8 +27,8 @@ while True:
             0.6,
             (0,0,255),
             )
-    cv2.putText( frame, 'Press q to quit',
-            (frame.shape[1]-100, frame.shape[0]-10),
+    cv2.putText( frame, 'Press q to quit, r to snapshot',
+            (frame.shape[1]-175, frame.shape[0]-10),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.35,
             (0,255,0),
@@ -38,3 +38,6 @@ while True:
     key = cv2.waitKey(1)
     if key == ord('q'):
         break
+
+    if key == ord('r'):
+        cv2.imwrite('thepic.png', frame)
