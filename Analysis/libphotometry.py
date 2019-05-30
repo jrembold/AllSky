@@ -19,8 +19,8 @@ def selectPoint(image):
     fig, ax = plt.subplots()
     ax.imshow(image, cmap="gray")
     plt.show()
-    x = input("Desired x coordinate? ")
-    y = input("Desired y coordinate? ")
+    x = int(input("Desired x coordinate? "))
+    y = int(input("Desired y coordinate? "))
     plt.close()
     return (x, y)
 
@@ -30,11 +30,16 @@ def threshold(img, thresh):
     return cv2.threshold(img, thresh, 255, cv2.THRESH_BINARY)[1]
 
 
+def blur(img, kern=(3, 3)):
+    """Do a quick gaussian blur on an image."""
+    return cv2.GaussianBlur(img, kern, 0)
+
+
 def find_largest_contour(bin_img):
     """Returns the largest bright contour in a binary image."""
     conts, _ = cv2.findContours(bin_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     if len(conts) < 1:
-        return None
+        raise ValueError("No contours were found in the image.")
     largest_cont = conts[np.argmax([cv2.contourArea(c) for c in conts])]
     return largest_cont
 
@@ -42,6 +47,8 @@ def find_largest_contour(bin_img):
 def find_center_mass(contour):
     """Returns the center point of a given contour."""
     M = cv2.moments(contour)
+    if M["m00"] == 0:
+        raise ValueError("Contour too small to find a new center.")
     cR = int(M["m01"] / M["m00"])
     cC = int(M["m10"] / M["m00"])
     return (cR, cC)
@@ -51,10 +58,6 @@ def compute_obj_intensity(img, threshold_=40):
     """Primary function to compute the total measured brightness of the largest bright
     object in an image.
     """
-    # Computing center and radius
-    bin_img = threshold(img, threshold_)
-    big_cont = find_largest_contour(bin_img)
-    center, radius = cv2.minEnclosingCircle(big_cont)
 
     def create_circle_mask(img, center, radius):
         """Broadcasting method of creating a boolean mask of all points within
@@ -67,31 +70,41 @@ def compute_obj_intensity(img, threshold_=40):
         r, c = np.ogrid[0:h, 0:w] - np.array(center[::-1])
         return (r ** 2 + c ** 2) < radius ** 2
 
-    # Creating masks
-    sig_r = 2
-    bg_r1, bg_r2 = 5, 9
-    signal = create_circle_mask(img, center, radius + sig_r)
-    background = np.logical_xor(
-        create_circle_mask(img, center, radius + bg_r1),
-        create_circle_mask(img, center, radius + bg_r2),
-    )
-    summed_intensity = np.sum(img[signal] - np.mean(img[background]))
+    # Computing center and radius
+    bin_img = threshold(blur(img), threshold_)
+    try:
+        big_cont = find_largest_contour(bin_img)
+        center, radius = cv2.minEnclosingCircle(big_cont)
 
-    # -----------------------
-    # Temporary and just for display and testing
-    plt.close()
-    plt.imshow(img, cmap="gray")
-    from matplotlib.patches import Circle
+        # Creating masks
+        sig_r = 2
+        bg_r1, bg_r2 = 5, 9
+        signal = create_circle_mask(img, center, radius + sig_r)
+        background = np.logical_xor(
+            create_circle_mask(img, center, radius + bg_r1),
+            create_circle_mask(img, center, radius + bg_r2),
+        )
+        summed_intensity = np.sum(img[signal] - np.mean(img[background]))
 
-    p = Circle(center, radius + sig_r, fill=False, ec="green", lw=2)
-    p2 = Circle(center, radius + bg_r1, fill=False, ec="cyan", lw=2)
-    p3 = Circle(center, radius + bg_r2, fill=False, ec="cyan", lw=2)
-    plt.gca().add_patch(p)
-    plt.gca().add_patch(p2)
-    plt.gca().add_patch(p3)
-    # plt.imshow(signal | background)  # Shows masks
-    plt.show()
-    # -----------------------
+        # -----------------------
+        # Temporary and just for display and testing
+        plt.close()
+        plt.imshow(img, cmap="gray")
+        from matplotlib.patches import Circle
+
+        p = Circle(center, radius + sig_r, fill=False, ec="green", lw=2)
+        p2 = Circle(center, radius + bg_r1, fill=False, ec="cyan", lw=2)
+        p3 = Circle(center, radius + bg_r2, fill=False, ec="cyan", lw=2)
+        plt.gca().add_patch(p)
+        plt.gca().add_patch(p2)
+        plt.gca().add_patch(p3)
+        # plt.imshow(signal | background)  # Shows masks
+        plt.show()
+        # -----------------------
+    except ValueError as e:
+        print(e)
+        print("The intensity could not be found and a value of 0 was returned.")
+        return 0
 
     return summed_intensity
 
@@ -105,11 +118,34 @@ def compute_obj_mag(obj_flux, candle_flux, candle_mag):
     return -2.5 * np.log10(obj_flux) - offset
 
 
+def temp_follow(vid, sframe, icent):
+    cents = []
+    fluxes = []
+    sf = SubImage(vid.get_frame(sframe), (icent), 25)
+    sf.autocenter()
+    print(f"Frame {sframe}: At {sf.center} with flux {sf.get_flux()}.")
+    for i in range(1, vid.length - 1):
+        try:
+            sf = SubImage(vid.get_frame(sframe + i), sf.center, 25)
+            sf.autocenter()
+            flux = sf.get_flux()
+            cents.append(sf.center)
+            fluxes.append(flux)
+            print(f"Frame {sframe+i}: At {sf.center} with flux {sf.get_flux()}.")
+            # _ = input('Press enter to continue...')
+        except ValueError as e:
+            print(e)
+            print("Halting follow function.")
+            break
+    return cents, fluxes
+
+
 class SubImage(object):
     """Class to form subimages and keep track of their center."""
 
     def __init__(self, img, cent, radius, thresh=40):
         self.img = img
+        self.center = cent
         self.r, self.c = cent
         self.radius = radius
         self.thresh = thresh
@@ -137,13 +173,20 @@ class SubImage(object):
         newcent should be of the form (row, column)
         """
         self.r, self.c = newcent
+        self.center = (self.r, self.c)
         self.calcdata()
 
     def autocenter(self):
         """Function to recenter a subimage on the largest bright object in the scene."""
-        big_contour = find_largest_contour(threshold(self.data, self.thresh))
-        corr_r, corr_c = find_center_mass(big_contour)
-        self.new_cent((self.r - self.radius + corr_r, self.c - self.radius + corr_c))
+        try:
+            big_contour = find_largest_contour(threshold(blur(self.data), self.thresh))
+            corr_r, corr_c = find_center_mass(big_contour)
+            self.new_cent(
+                (self.r - self.radius + corr_r, self.c - self.radius + corr_c)
+            )
+        except ValueError as e:
+            print("Autocenter has encountered an error and will not complete.")
+            raise
 
     def get_flux(self):
         """Compute the summed intensity or flux of the subimage."""
@@ -152,7 +195,15 @@ class SubImage(object):
     def show(self):
         """Plots subimage to a window."""
         plt.close()  # Remove any existing plot
-        plt.imshow(self.data)
+        plt.imshow(
+            self.data,
+            extent=[
+                self.c - self.radius,
+                self.c + self.radius,
+                self.r + self.radius,
+                self.r - self.radius,
+            ],
+        )
         plt.colorbar()
         plt.show()
 
@@ -160,3 +211,32 @@ class SubImage(object):
         return "A SubImage centered at row {} and column {} with radius {}.".format(
             self.r, self.c, self.radius
         )
+
+
+class Video(object):
+    """Class to facilitate working with video files."""
+
+    def __init__(self, fname):
+        self.fname = fname
+        self.data = None
+        self.length = 1
+        self.readVideo()
+
+    def readVideo(self):
+        vid = cv2.VideoCapture(self.fname)
+        grab, img = vid.read()
+        imgstack = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        grab, img = vid.read()
+        while grab:
+            imgstack = np.dstack([imgstack, cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)])
+            grab, img = vid.read()
+            self.length += 1
+        self.data = imgstack
+
+    def show(self, frame):
+        plt.close()
+        plt.imshow(self.data[:, :, frame], cmap="gray")
+        plt.show()
+
+    def get_frame(self, frame):
+        return self.data[:, :, frame]
