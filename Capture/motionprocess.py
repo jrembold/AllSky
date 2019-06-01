@@ -26,9 +26,18 @@ import csv
 import string
 # import cProfile
 from threading import Thread
+from HumTemp import log_weather
 
 import shared
 
+d6log = logging.getLogger('D6')
+format_ = '[{asctime}.{msecs:<3.0f}] [{levelname:^8}]: {message}'
+fhandler = logging.FileHandler('Logs/Observation_Log.log')
+fhandler.setFormatter(logging.Formatter(format_,
+    datefmt = '%Y/%m/%d %H:%M:%S',
+    style = '{'))
+d6log.setLevel(logging.DEBUG)
+d6log.addHandler(fhandler)
 
 def next_id(prev_id:string):
     old = base36decode(prev_id)
@@ -73,7 +82,7 @@ def takeSnapshot(path):
                     # savefile = cv2.add(cv2.subtract(savefile,savefile.mean()), cv2.subtract(newframe, newframe.mean()))
                 # savefile = cv2.cvtColor(savefile, cv2.COLOR_GRAY2BGR)
                 cv2.imwrite(path + '/'+ date_str + "_Snap.png", savefile)
-                logging.info('Taking Snapshot: {}_Snap.png'.format(date_str))
+                d6log.info('Taking Snapshot: {}_Snap.png'.format(date_str))
             time.sleep(30*60) #Sleep 30 mins
         time.sleep(5*60) #If analysis off, wait 10 minutes then check again
 
@@ -109,7 +118,7 @@ def get_Hough_Avg_Pt(lines):
 
 
 def write_to_table(pos:'(x,y)'):
-    with open('Obs_Table.csv', 'r') as f:
+    with open('Logs/Obs_Table.csv', 'r') as f:
         row = next(reversed(list(csv.reader(f))))
         code = row[0]
 
@@ -121,7 +130,7 @@ def write_to_table(pos:'(x,y)'):
             'pty': pos[1],
             }
 
-    with open('Obs_Table.csv', 'a') as f:
+    with open('Logs/Obs_Table.csv', 'a') as f:
         f.write('{code},{local},{utc},{ptx},{pty}\n'.format(**params))
 
 
@@ -148,9 +157,9 @@ def analyze(buffsize, savepath, headless, vpath=None ):
     framenum = 0
     kcw = KeyClipWriter(bufSize=buffsize)
     consecFrames = 0
-    logging.info("New Observation Run Started")
-    logging.info("Detection params -- Length: {}, Threshold: {}, MinLine: {}, LineSkip: {}".format(shared.DETECT.LENGTH, shared.DETECT.THRESHOLD, shared.DETECT.MINLINE, shared.DETECT.LINESKIP))
-    logging.info("Clips saved to {}".format(savepath))
+    d6log.info("New Observation Run Started")
+    d6log.info("Detection params -- Length: {}, Threshold: {}, MinLine: {}, LineSkip: {}".format(shared.DETECT.LENGTH, shared.DETECT.THRESHOLD, shared.DETECT.MINLINE, shared.DETECT.LINESKIP))
+    d6log.info("Clips saved to {}".format(savepath))
 
     disk_full = False
     vidFrames = 0
@@ -163,6 +172,12 @@ def analyze(buffsize, savepath, headless, vpath=None ):
     snapshots.daemon = True
     snapshots.start()
 
+    # Start weather logging thread
+    weather = Thread(target=log_weather, args=(5*60,))
+    weather.daemon = True
+    weather.start()
+
+
     while grabbed:
         # Check the time to see what hour of the day it is
         curr_hour = time.localtime().tm_hour
@@ -173,7 +188,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
             # If it is nighttime turn on analyzing, else sleep for 5 mins before checking again
             if not shared.STARTTIME <= curr_hour < shared.ENDTIME:
                 shared.ANALYZE_ON = True
-                logging.info("A new night has arrived! Frame analysis beginning!")
+                d6log.info("A new night has arrived! Frame analysis beginning!")
             else:
                 # print("Daylight! Sleeping...")
                 time.sleep(5)
@@ -188,7 +203,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
 
             # If no frame to grab, either we have an issue or we are at the end
             if not grabbed:
-                logging.warning("No frame was grabbed. Exiting run loop.")
+                d6log.warning("No frame was grabbed. Exiting run loop.")
                 break
 
             # Initialize frame as no containing an event, so that consecutive non-event frame counter should augment
@@ -254,10 +269,10 @@ def analyze(buffsize, savepath, headless, vpath=None ):
                         # kcw.start(p, cv2.VideoWriter_fourcc(*'FFV1'), 30)
                         kcw.start(p, cv2.VideoWriter_fourcc(*'XVID'), 30)
                         # kcw.start(p, cv2.VideoWriter_fourcc(*'HFYU'), 30)
-                        logging.info("New event detected. Video name: {}".format(p))
+                        d6log.info("New event detected. Video name: {}".format(p))
                         write_to_table(get_Hough_Avg_Pt(lines[0]))
                     else:
-                        logging.warning("Terminating observation run due to lack of storage")
+                        d6log.warning("Terminating observation run due to lack of storage")
                         disk_full = True
                         shared.ANALYZE_ON = False
 
@@ -273,7 +288,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
                 vidFrames += 1
                 if vidFrames > 100:
                     kcw.terminate()
-                    logging.warning("Event was too long and was terminated early as false positive.")
+                    d6log.warning("Event was too long and was terminated early as false positive.")
 
 
             #Update buffer with latest frame
@@ -282,7 +297,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
             #If too many frames w/o an event, stop recording
             if kcw.recording and consecFrames == buffsize:
                 kcw.finish()
-                logging.info("Event completed and video recording finished") 
+                d6log.info("Event completed and video recording finished") 
 
             # Show windows if desired
             if not headless:
@@ -298,7 +313,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
                 # Exit script early. This does not work if running in headless mode
                 if key == ord("q"):
                     shared.ANALYZE_ON = False
-                    logging.info("Analysis manually stopped!")
+                    d6log.info("Analysis manually stopped!")
 
             framenum += 1
             endframetime = time.time()
@@ -311,7 +326,7 @@ def analyze(buffsize, savepath, headless, vpath=None ):
             # Check time
             if shared.STARTTIME <= time.localtime().tm_hour < shared.ENDTIME:
                 shared.ANALYZE_ON = False
-                logging.info("Day has come. Analysis going to sleep.")
+                d6log.info("Day has come. Analysis going to sleep.")
 
             if not shared.RUNNING:
                 break
@@ -324,19 +339,19 @@ def analyze(buffsize, savepath, headless, vpath=None ):
 
         if not shared.RUNNING:
             shared.ANALYZE_ON = False
-            logging.info("Analysis has been stopped manually.")
+            d6log.info("Analysis has been stopped manually.")
             break
 
         if disk_full:
             break
 
-    logging.info("Observing session finished.")
+    d6log.info("Observing session finished.")
 
 if __name__ == "__main__":
     #Setting up logging formatting and location
     logging.basicConfig(
             #Logging to Log.txt in same directory as script
-            filename = 'Observation_Log.txt',
+            filename = 'Logs/Observation_Log.log',
             level = logging.DEBUG,
             style = '{',
             format = '[{asctime}.{msecs:<3.0f}] [{levelname:^8}]: {message}',

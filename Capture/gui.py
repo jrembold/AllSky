@@ -37,6 +37,8 @@ STARTTIME = {stime}
 ENDTIME = {etime}
 FRAMERATE = 0
 SRC = {src}
+TEMP = {temp}
+HUMID = {humid}
 
 class DETECT:
     LENGTH = {len}
@@ -51,16 +53,16 @@ mainprog = None #Needs to be global so that subsequent
                 #handle_keypress calls still understand
 
 #Setting up logging formatting and location
-logging.basicConfig(
-        #Logging to Log.txt in same directory as script
-        filename = 'Observation_Log.txt',
-        level = logging.DEBUG,
-        style = '{',
-        format = '[{asctime}.{msecs:<3.0f}] ' +
-                 '[{levelname:^8}]: {message}',
-        datefmt = '%Y/%m/%d %H:%M:%S',
-        # filemode = 'w',
-        )
+#logging.basicConfig(
+#        #Logging to Log.txt in same directory as script
+#        filename = 'Logs/Observation_Log.log',
+#        level = logging.DEBUG,
+#        style = '{',
+#        format = '[{asctime}.{msecs:<3.0f}] ' +
+#                 '[{levelname:^8}]: {message}',
+#        datefmt = '%Y/%m/%d %H:%M:%S',
+#        # filemode = 'w',
+#        )
 
 def writeConfig():
 
@@ -75,6 +77,8 @@ def writeConfig():
                 'thresh': shared.DETECT.THRESHOLD,
                 'mlin': shared.DETECT.MINLINE,
                 'lskip': shared.DETECT.LINESKIP,
+                'temp': shared.TEMP,
+                'humid': shared.HUMID
                 }
         f.write(template.format(**content))
 
@@ -281,9 +285,13 @@ def updatestatus(loop, userdat):
     #Update Frame Rate
     if shared.ANALYZE_ON and shared.FRAMERATE:
         st_framerate.set_text(['Frame Rate: ', 
-            ('info',  '{:0.2f}'.format(shared.FRAMERATE))])
+            ('info',  '{:0.2f}\n'.format(shared.FRAMERATE))])
     else:
-        st_framerate.set_text(['Frame Rate: ', ('alert', 'N/A')])
+        st_framerate.set_text(['Frame Rate: ', ('alert', 'N/A\n')])
+
+    #Update Temperature and Humidity
+    st_temp.set_text(['Temperature: ', ('info', '{:0.2f}F\n'.format(shared.TEMP))])
+    st_humid.set_text(['Humidity: ', ('info', '{:0.2f}%\n'.format(shared.HUMID))])
 
     loop.set_alarm_in(1, updatestatus)
 
@@ -297,7 +305,7 @@ def parse_log():
     '''
     output = []
     try:
-        log_data = tailer.tail(open('Observation_Log.txt'), 4)
+        log_data = tailer.tail(open('Logs/Observation_Log.log'), 4)
     except:
         return [('alert', 'File Not Found!')]
     if log_data:
@@ -363,8 +371,10 @@ st_lhs = urwid.Pile([st_time,
 #rhs
 st_saveloc = urwid.Text('Save Location: \n')
 st_diskspace = urwid.Text('Free Space: \n')
-st_framerate = urwid.Text('Frame Rate: ')
-st_rhs = urwid.Pile([st_saveloc, st_diskspace, st_framerate])
+st_framerate = urwid.Text('Frame Rate: \n')
+st_temp = urwid.Text('Temperature: \n')
+st_humid = urwid.Text('Humidity: \n')
+st_rhs = urwid.Pile([st_saveloc, st_diskspace, st_framerate, st_temp, st_humid])
 
 statusbox = urwid.LineBox(
         urwid.Padding(
