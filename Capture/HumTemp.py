@@ -15,10 +15,15 @@ logger.addHandler(fhandler)
 
 def log_weather(delay):
     while True:
-        h,t = dht.read_retry(dht.DHT22, 24)
-        shared.TEMP = t*9/5+32
-        shared.HUMID = h
-        logger.info('Temp: {:0.2f}F, Hum: {:0.2f}%'.format(t*9/5+32,h))
+        try:
+            h,t = dht.read_retry(dht.DHT22, 24)
+            shared.TEMP = t*9/5+32
+            shared.HUMID = h
+            logger.info('Temp: {:0.2f}F, Hum: {:0.2f}%'.format(t*9/5+32,h))
+        except:
+            shared.TEMP = 'NA'
+            shared.HUMID = 'NA'
+            logger.info('Temp: NA, Hum: NA')
         time.sleep(delay)
 
 if __name__ == '__main__':
