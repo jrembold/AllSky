@@ -290,8 +290,12 @@ def updatestatus(loop, userdat):
         st_framerate.set_text(['Frame Rate: ', ('alert', 'N/A\n')])
 
     #Update Temperature and Humidity
-    st_temp.set_text(['Temperature: ', ('info', '{:0.2f}F\n'.format(shared.TEMP))])
-    st_humid.set_text(['Humidity: ', ('info', '{:0.2f}%\n'.format(shared.HUMID))])
+    if shared.TEMP == 'NA':
+        st_temp.set_text(['Temperature: ', ('info', 'N/A\n')])
+        st_humid.set_text(['Humidity: ', ('info', 'N/A\n')])
+    else:
+        st_temp.set_text(['Temperature: ', ('info', '{:0.2f}F\n'.format(shared.TEMP))])
+        st_humid.set_text(['Humidity: ', ('info', '{:0.2f}%\n'.format(shared.HUMID))])
 
     loop.set_alarm_in(1, updatestatus)
 
