@@ -175,7 +175,6 @@ class ShortClipWriter:
         # Set recording flag
         self.recording = False
 
-        print(self.toolong)
         if self.toolong:
             os.remove(self.outputPath)
         else:
