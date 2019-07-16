@@ -13,7 +13,7 @@
 # ===================================================
 
 import argparse
-from VidUtils import KeyClipWriter
+from VidUtils import KeyClipWriter, ShortClipWriter
 from datetime import datetime as dt
 import time
 import os
@@ -27,7 +27,12 @@ import string
 
 # import cProfile
 from threading import Thread
-from HumTemp import log_weather
+
+TempLog = True
+try:
+    from HumTemp import log_weather
+except ImportError:
+    TempLog = False
 
 import shared
 
@@ -140,7 +145,7 @@ def write_to_table(pos: "(x,y)"):
         f.write("{code},{local},{utc},{ptx},{pty}\n".format(**params))
 
 
-def analyze(buffsize, savepath, headless, vpath=None):
+def analyze(buffsize, savepath, headless, vpath=None, delay=1):
     """
     This is the main analysis script. Reads in the data from the camera,
     checks for objects, opens threads to save the data if an object is
@@ -161,7 +166,7 @@ def analyze(buffsize, savepath, headless, vpath=None):
     avg = None
     accum = None
     framenum = 0
-    kcw = KeyClipWriter(bufSize=buffsize)
+    kcw = ShortClipWriter(bufSize=buffsize)
     consecFrames = 0
     d6log.info("New Observation Run Started")
     d6log.info(
@@ -175,7 +180,6 @@ def analyze(buffsize, savepath, headless, vpath=None):
     d6log.info("Clips saved to {}".format(savepath))
 
     disk_full = False
-    vidFrames = 0
 
     # Grab one frame to initialize
     (grabbed, frame) = cam.read()
@@ -186,9 +190,10 @@ def analyze(buffsize, savepath, headless, vpath=None):
     snapshots.start()
 
     # Start weather logging thread
-    weather = Thread(target=log_weather, args=(5 * 60,))
-    weather.daemon = True
-    weather.start()
+    if TempLog:
+        weather = Thread(target=log_weather, args=(5 * 60,))
+        weather.daemon = True
+        weather.start()
 
     while grabbed:
         # Check the time to see what hour of the day it is
@@ -238,8 +243,8 @@ def analyze(buffsize, savepath, headless, vpath=None):
 
             # Subtract and Threshold
             delta = cv2.subtract(gray, avg)
-            thresh = cv2.threshold(delta, 30, 255, cv2.THRESH_BINARY)[1]
-            kernel = np.ones([3, 3])
+            thresh = cv2.threshold(delta, 20, 255, cv2.THRESH_BINARY)[1]
+            kernel = np.ones([2, 2])
             thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
 
             # Accumulated binaries to create line for Hough transform to find
@@ -311,22 +316,17 @@ def analyze(buffsize, savepath, headless, vpath=None):
             # Wrapping things up
             if updateConsecFrames:
                 consecFrames += 1
-                vidFrames = 0
-            else:
-                vidFrames += 1
-                if vidFrames > 100:
-                    kcw.terminate()
-                    d6log.warning(
-                        "Event was too long and was terminated early as false positive."
-                    )
 
             # Update buffer with latest frame
             kcw.update(output)
 
             # If too many frames w/o an event, stop recording
             if kcw.recording and consecFrames == buffsize:
+                if kcw.toolong:
+                    d6log.info("Event was too long and was erased.")
+                else:
+                    d6log.info("Event completed and video recording finished")
                 kcw.finish()
-                d6log.info("Event completed and video recording finished")
 
             # Show windows if desired
             if not headless:
@@ -334,10 +334,10 @@ def analyze(buffsize, savepath, headless, vpath=None):
                 # cv2.imshow("Timestamp",G)
                 # cv2.imshow("Box", R)
                 cv2.imshow("Background", avg)
-                cv2.imshow("Subtracted", delta)
+                cv2.imshow("Subtracted", thresh)
                 cv2.imshow("Accumulated", accum_thresh)
 
-                key = cv2.waitKey(1)
+                key = cv2.waitKey(delay)
 
                 # Exit script early. This does not work if running in headless mode
                 if key == ord("q"):
@@ -378,18 +378,6 @@ def analyze(buffsize, savepath, headless, vpath=None):
 
 
 if __name__ == "__main__":
-    # Setting up logging formatting and location
-    logging.basicConfig(
-        # Logging to Log.txt in same directory as script
-        filename="Logs/Observation_Log.log",
-        level=logging.DEBUG,
-        style="{",
-        format="[{asctime}.{msecs:<3.0f}] [{levelname:^8}]: {message}",
-        # datefmt = '%H:%M:%S',
-        datefmt="%Y/%m/%d %H:%M:%S",
-        # filemode = 'w',
-    )
-
     shared.RUNNING = True
     grabbed = False
     shared.ANALYZE_ON = False
@@ -414,8 +402,15 @@ if __name__ == "__main__":
         action="store_true",
         help="Pass option to suppress monitoring output",
     )
+    ap.add_argument(
+        "-d",
+        "--delay",
+        type=int,
+        default=1,
+        help="Delay in playback of frames. Only use for saved videos",
+    )
     args = vars(ap.parse_args())
     # print(args)
 
     # cProfile.run('main()')
-    analyze(args["buffer_size"], args["output"], args["headless"], args["video"])
+    analyze(args["buffer_size"], args["output"], args["headless"], args["video"], args["delay"])
