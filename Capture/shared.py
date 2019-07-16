@@ -17,5 +17,5 @@ class DETECT:
     LENGTH = 10
     ANGLES = 0.1
     THRESHOLD = 45
-    MINLINE = 20
+    MINLINE = 10
     LINESKIP = 2
