@@ -6,6 +6,7 @@ import time
 import os
 import cv2
 
+
 class KeyClipWriter:
     def __init__(self, bufSize=64, timeout=1.0):
         # Maximum number of frames to be kept in memory
@@ -21,7 +22,6 @@ class KeyClipWriter:
         self.recording = False
         self.outputPath = None
 
-
     def update(self, frame):
         # Add frame to the frame buffer
         self.frames.appendleft(frame)
@@ -30,25 +30,29 @@ class KeyClipWriter:
         if self.recording:
             self.Q.put(frame)
 
-
     def start(self, outputPath, fourcc, fps):
         # Set recording flag
         self.recording = True
         self.outputPath = outputPath
         # Initialize writer
-        self.writer = cv2.VideoWriter(outputPath, fourcc, fps, (self.frames[0].shape[1], self.frames[0].shape[0]), True)
+        self.writer = cv2.VideoWriter(
+            outputPath,
+            fourcc,
+            fps,
+            (self.frames[0].shape[1], self.frames[0].shape[0]),
+            True,
+        )
         # Initialize queue of frames to be written
         self.Q = Queue()
 
         # Add everything currently in the frames buffer to the queue
         for i in range(len(self.frames), 0, -1):
-            self.Q.put(self.frames[i-1])
+            self.Q.put(self.frames[i - 1])
 
         # Start a thread to write the frames
         self.thread = Thread(target=self.write, args=())
         self.thread.daemon = True
         self.thread.start()
-
 
     def write(self):
         # Start up the writing loop
@@ -66,7 +70,6 @@ class KeyClipWriter:
             else:
                 time.sleep(self.timeout)
 
-
     def flush(self):
         # Empty the queue by writing out the rest of what is in it
         time1 = time.time()
@@ -76,7 +79,6 @@ class KeyClipWriter:
         time2 = time.time()
         # print("Flush elapsed time was: {}".format(time2-time1))
 
-
     def finish(self):
         # Set recording flag
         self.recording = False
@@ -84,12 +86,103 @@ class KeyClipWriter:
         self.flush()
         self.writer.release()
 
-
     def terminate(self):
         self.recording = False
         self.thread.join()
         self.writer.release()
         os.remove(self.outputPath)
+
+
+class ShortClipWriter:
+    """Class to better manage writing out video files on a running basis"""
+
+    def __init__(self, bufSize=64, timeout=1.0, max_frames=120):
+        # Maximum number of frames to be kept in memory
+        self.bufSize = bufSize
+        # Sleep timeout for threading to prevent lock competition
+        self.timeout = timeout
+        # Max number of frames for a "short clip"
+        self.rec_max_frames = max_frames
+
+        # Initialize everything
+        self.frames = deque(maxlen=bufSize)
+        self.Q = None
+        self.writer = None
+        self.thread = None
+        self.recording = False
+        self.outputPath = None
+        self.toolong = False
+
+    def update(self, frame):
+        """Update both the rolling buffer and, if recording,
+        update the video buffer as well. Takes a single np.array
+        as a frame.
+        """
+        # Add frame to the frame buffer
+        self.frames.append(frame)
+
+        # If we are also recording, add the frame to the write queue as well
+        if self.recording:
+            self.Q.append(frame)
+            # We only want short clips, so flag long recordings
+            if len(self.Q) > self.rec_max_frames:
+                self.toolong = True
+
+    def start(self, outputPath, fourcc, fps):
+        """Starts a video recording event, setting the output path and
+        other video parameters. Adds the last buffer of images to the
+        video buffer to be written to disk upon the events conclusion.
+
+        outputPath: (str) file location of written video
+        fourcc: (str) fourcc codec to be used
+        fps: (int) number of desired frames per second of the video
+        """
+        # Set initial recording flags
+        self.recording = True
+        self.toolong = False
+        self.outputPath = outputPath
+
+        # Initialize writer
+        self.writer = cv2.VideoWriter(
+            outputPath,
+            fourcc,
+            fps,
+            (self.frames[0].shape[1], self.frames[0].shape[0]),
+            True,
+        )
+        # Initialize queue of frames to be written
+        self.Q = deque()
+
+        # Add everything currently in the frames buffer to the queue
+        self.Q.extend(self.frames)
+
+    def write(self, framelist):
+        """Takes every frame in the provided framelist deque and writes
+        to video, releasing the writer upon conclusion.
+
+        framelist: (deque) Queue of np.array frames to be written to video
+        """
+        while len(framelist) > 0:
+            frame = framelist.popleft()
+            self.writer.write(frame)
+        self.writer.release()
+
+    def finish(self):
+        """Upon conclusion of an event, stops the recording and sends
+        the queue of frames to a separate thread to do the writing to
+        disk.
+        """
+        # Set recording flag
+        self.recording = False
+
+        print(self.toolong)
+        if self.toolong:
+            os.remove(self.outputPath)
+        else:
+            # Start a thread to write the frames
+            self.thread = Thread(target=self.write, args=(self.Q.copy(),))
+            self.thread.daemon = False
+            self.thread.start()
 
 
 class VideoStream:
@@ -127,5 +220,3 @@ class VideoStream:
     def stop(self):
         # Indicate the thread should be stopped
         self.stopped = True
-
-
