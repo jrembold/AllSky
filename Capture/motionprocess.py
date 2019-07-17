@@ -321,12 +321,13 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
             kcw.update(output)
 
             # If too many frames w/o an event, stop recording
-            if kcw.recording and consecFrames == buffsize:
+            if kcw.recording:
                 if kcw.toolong:
                     d6log.info("Event was too long and was erased.")
-                else:
+                    kcw.finish()
+                elif consecFrames >= buffsize:
                     d6log.info("Event completed and video recording finished")
-                kcw.finish()
+                    kcw.finish()
 
             # Show windows if desired
             if not headless:
