@@ -96,7 +96,7 @@ class KeyClipWriter:
 class ShortClipWriter:
     """Class to better manage writing out video files on a running basis"""
 
-    def __init__(self, bufSize=64, timeout=1.0, max_frames=120):
+    def __init__(self, bufSize=64, timeout=1.0, max_frames=240):
         # Maximum number of frames to be kept in memory
         self.bufSize = bufSize
         # Sleep timeout for threading to prevent lock competition
