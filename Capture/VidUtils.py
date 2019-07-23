@@ -96,7 +96,7 @@ class KeyClipWriter:
 class ShortClipWriter:
     """Class to better manage writing out video files on a running basis"""
 
-    def __init__(self, bufSize=64, timeout=1.0, max_frames=240):
+    def __init__(self, bufSize=60, timeout=1.0, max_frames=240):
         # Maximum number of frames to be kept in memory
         self.bufSize = bufSize
         # Sleep timeout for threading to prevent lock competition
@@ -123,10 +123,11 @@ class ShortClipWriter:
 
         # If we are also recording, add the frame to the write queue as well
         if self.recording:
-            self.Q.append(frame)
             # We only want short clips, so flag long recordings
             if len(self.Q) > self.rec_max_frames:
                 self.toolong = True
+            else:
+                self.Q.append(frame)
 
     def start(self, outputPath, fourcc, fps):
         """Starts a video recording event, setting the output path and
