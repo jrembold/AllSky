@@ -96,7 +96,7 @@ class KeyClipWriter:
 class ShortClipWriter:
     """Class to better manage writing out video files on a running basis"""
 
-    def __init__(self, bufSize=60, timeout=1.0, max_frames=240):
+    def __init__(self, bufSize=60, timeout=1.0, max_frames=200):
         # Maximum number of frames to be kept in memory
         self.bufSize = bufSize
         # Sleep timeout for threading to prevent lock competition
@@ -180,6 +180,9 @@ class ShortClipWriter:
             os.remove(self.outputPath)
         else:
             # Start a thread to write the frames
+            # If an old thread is still executing, make sure it is done before proceeding
+            if self.thread:
+                self.thread.join()
             self.thread = Thread(target=self.write, args=(self.Q.copy(),))
             self.thread.daemon = False
             self.thread.start()
