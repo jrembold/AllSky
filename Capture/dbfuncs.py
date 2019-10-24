@@ -13,7 +13,7 @@ def update_session(id_: str, update_dict: dict):
     with lite.connect('Logs/Observations.db') as db:
         cur = db.cursor()
         for key in update_dict:
-            cmd = f'UPDATE sessions SET "{key}"="{update_dict[key]}" WHERE id="{id_}";'
+            cmd = 'UPDATE sessions SET "{}"="{}" WHERE id="{}";'.format(key, update_dict[key], id_)
             cur.execute(cmd)
         db.commit()
 
@@ -27,6 +27,6 @@ def get_last_session_id():
 def get_entry(id_: str, column: str):
     with lite.connect('Logs/Observations.db') as db:
         cur = db.cursor()
-        cur.execute(f'SELECT "{column}" FROM sessions WHERE id="{id_}";')
+        cur.execute('SELECT "{}" FROM sessions WHERE id="{}";'.format(column, id_))
         entry = cur.fetchall()[0][0]
     return entry
