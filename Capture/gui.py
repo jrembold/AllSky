@@ -35,6 +35,7 @@ ANALYZE_ON = False
 SAVELOC = '{loc}'
 STARTTIME = {stime}
 ENDTIME = {etime}
+BRIGHT_THRESH = {b_thresh}
 FRAMERATE = 0
 SRC = {src}
 TEMP = {temp}
@@ -72,6 +73,7 @@ def writeConfig():
                 'stime': shared.STARTTIME,
                 'etime': shared.ENDTIME,
                 'src': shared.SRC,
+                'b_thresh': shared.BRIGHT_THRESH,
                 'len': shared.DETECT.LENGTH,
                 'angs': shared.DETECT.ANGLES,
                 'thresh': shared.DETECT.THRESHOLD,
