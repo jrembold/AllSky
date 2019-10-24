@@ -5,7 +5,7 @@ motionprocess to read and write to.
 
 RUNNING = False
 ANALYZE_ON = False
-SAVELOC = '/home/thor/Video'
+SAVELOC = '/home/jedediah/Videos/AllSky/Test'
 STARTTIME = 5
 ENDTIME = 20
 FRAMERATE = 0

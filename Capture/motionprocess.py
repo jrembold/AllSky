@@ -24,6 +24,7 @@ import numpy as np
 import cv2
 import csv
 import string
+import dbfuncs as dbf
 
 # import cProfile
 from threading import Thread
@@ -205,6 +206,22 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
             if not shared.STARTTIME <= curr_hour < shared.ENDTIME:
                 shared.ANALYZE_ON = True
                 d6log.info("A new night has arrived! Frame analysis beginning!")
+                lastid = dbf.get_last_session_id()
+                newid = next_id(lastid[1:])
+                sessionid = "s" + newid
+                dbf.add_session(sessionid)
+                dbf.update_session(
+                    sessionid,
+                    {
+                        "start_time_utc": dt.utcnow(),
+                        "ht_length": shared.DETECT.LENGTH,
+                        "ht_thresh": shared.DETECT.THRESHOLD,
+                        "ht_minline": shared.DETECT.MINLINE,
+                        "ht_lineskip": shared.DETECT.LINESKIP,
+                        "bright_thresh": shared.BRIGHT_THRESH
+                    },
+                )
+
             else:
                 # print("Daylight! Sleeping...")
                 time.sleep(5)
@@ -222,7 +239,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                 d6log.warning("No frame was grabbed. Exiting run loop.")
                 break
 
-            # Initialize frame as no containing an event, so that consecutive 
+            # Initialize frame as no containing an event, so that consecutive
             # non-event frame counter should augment
             updateConsecFrames = True
 
@@ -244,7 +261,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
 
             # Subtract and Threshold
             delta = cv2.subtract(gray, avg)
-            thresh = cv2.threshold(delta, 20, 255, cv2.THRESH_BINARY)[1]
+            thresh = cv2.threshold(delta, shared.BRIGHT_THRESH, 255, cv2.THRESH_BINARY)[1]
             kernel = np.ones([2, 2])
             thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
 
@@ -257,7 +274,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
             # Thresholding the accumulated image for Hough Transforming
             accum_thresh = cv2.threshold(accum, 10, 255, cv2.THRESH_BINARY)[1]
 
-            # Writing date and time in UTC to lower left corner of 
+            # Writing date and time in UTC to lower left corner of
             # output frame in green
             date_num = dt.utcnow()
             date_str = date_num.strftime("%Y%m%d %H%M%S.%f")
@@ -279,12 +296,12 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                 minLineLength=shared.DETECT.MINLINE,
                 maxLineGap=shared.DETECT.LINESKIP,
             )
-            # If we detect lines, draw a box around each one and initialize 
+            # If we detect lines, draw a box around each one and initialize
             # or perpetuate recording
             if lines is not None and len(lines) < 50:
                 # for eachline in lines:
                 # for x1, y1, x2, y2 in eachline:
-                # Bounding box edges multiplied by 2 to account for dimension 
+                # Bounding box edges multiplied by 2 to account for dimension
                 # reduction earlier
                 # drawBoundingHough(R, 2*x1, 2*x2, 2*y1, 2*y2)
                 updateConsecFrames = False
@@ -294,7 +311,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                 if not kcw.recording:
                     # Get the current free space on the disk in megabytes
                     free_space = shutil.disk_usage(savepath).free * 1e-6
-                    # If we have more than 500MB available, go ahead and 
+                    # If we have more than 500MB available, go ahead and
                     # start the recording, else stop program
                     if free_space > 500:
                         # print("New event found at time: {}".format(date_str))
@@ -313,6 +330,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                         )
                         disk_full = True
                         shared.ANALYZE_ON = False
+                        dbf.update_session(sessionid, {"end_time_utc": dt.utcnow()})
 
             # Create output image with grayscale image saved as blue color
             # output = cv2.merge([B, G, R])
@@ -359,6 +377,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
             # Check time
             if shared.STARTTIME <= time.localtime().tm_hour < shared.ENDTIME:
                 shared.ANALYZE_ON = False
+                dbf.update_session(sessionid, {"end_time_utc": dt.utcnow()})
                 d6log.info("Day has come. Analysis going to sleep.")
 
             if not shared.RUNNING:
@@ -373,6 +392,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
         if not shared.RUNNING:
             shared.ANALYZE_ON = False
             d6log.info("Analysis has been stopped manually.")
+            dbf.update_session(sessionid, {"end_time_utc": dt.utcnow()})
             break
 
         if disk_full:
