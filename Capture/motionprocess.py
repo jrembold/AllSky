@@ -46,12 +46,12 @@ d6log.setLevel(logging.DEBUG)
 d6log.addHandler(fhandler)
 
 
-def next_id(prev_id: string):
+def next_id(prev_id: string) -> str:
     old = base36decode(prev_id)
     return base36encode(old + 1)
 
 
-def base36encode(number: int):
+def base36encode(number: int) -> str:
     if not isinstance(number, int):
         raise TypeError("Number must be an integer")
 
@@ -71,11 +71,11 @@ def base36encode(number: int):
     return base36.rjust(3, "0")
 
 
-def base36decode(input: string):
+def base36decode(input: str) -> int:
     return int(input, 36)
 
 
-def takeSnapshot(path):
+def takeSnapshot(path: str):
     """
     Function to be run in a thread to take periodic snapshots of the
     night sky. Mainly to serve as a confirmation for the sky state
@@ -85,15 +85,13 @@ def takeSnapshot(path):
         while grabbed and shared.ANALYZE_ON:
             date_num = dt.utcnow()
             date_str = date_num.strftime("%Y%m%d_%H%M%S")
-            if frame is not None:
-                savefile = frame
-                # for i in range(10):
-                # newframe = gray
-                # savefile = cv2.add(cv2.subtract(savefile,savefile.mean()), cv2.subtract(newframe, newframe.mean()))
-                # savefile = cv2.cvtColor(savefile, cv2.COLOR_GRAY2BGR)
+            if avg is not None:
+                savefile = cv2.resize(
+                    avg, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC
+                )
                 cv2.imwrite(path + "/" + date_str + "_Snap.png", savefile)
                 d6log.info("Taking Snapshot: {}_Snap.png".format(date_str))
-            time.sleep(30 * 60)  # Sleep 30 mins
+            time.sleep(10 * 60)  # Sleep 30 mins
         time.sleep(5 * 60)  # If analysis off, wait 10 minutes then check again
 
 
@@ -151,7 +149,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
     checks for objects, opens threads to save the data if an object is
     found. """
 
-    global grabbed, gray, frame
+    global grabbed, avg, frame
 
     # Saved video or live video?
     if vpath is None:
@@ -202,7 +200,8 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
         if vpath is not None:
             shared.ANALYZE_ON = True
         else:
-            # If it is nighttime turn on analyzing, else sleep for 5 mins before checking again
+            # If it is nighttime turn on analyzing, else sleep for 5 mins
+            # before checking again
             if not shared.STARTTIME <= curr_hour < shared.ENDTIME:
                 shared.ANALYZE_ON = True
                 d6log.info("A new night has arrived! Frame analysis beginning!")
@@ -223,14 +222,16 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                 d6log.warning("No frame was grabbed. Exiting run loop.")
                 break
 
-            # Initialize frame as no containing an event, so that consecutive non-event frame counter should augment
+            # Initialize frame as no containing an event, so that consecutive 
+            # non-event frame counter should augment
             updateConsecFrames = True
 
             # Process Frame
             gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
             B = gray.copy()
 
-            # Resize grayscale image for faster image processing (reducing each dimension by a factor of 2)
+            # Resize grayscale image for faster image processing
+            # (reducing each dimension by a factor of 2)
             gray = cv2.resize(gray, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
 
             # Average Frame
@@ -256,7 +257,8 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
             # Thresholding the accumulated image for Hough Transforming
             accum_thresh = cv2.threshold(accum, 10, 255, cv2.THRESH_BINARY)[1]
 
-            # Writing date and time in UTC to lower left corner of output frame in green
+            # Writing date and time in UTC to lower left corner of 
+            # output frame in green
             date_num = dt.utcnow()
             date_str = date_num.strftime("%Y%m%d %H%M%S.%f")
             cv2.putText(
@@ -277,11 +279,13 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                 minLineLength=shared.DETECT.MINLINE,
                 maxLineGap=shared.DETECT.LINESKIP,
             )
-            # If we detect lines, draw a box around each one and initialize or perpetuate recording
+            # If we detect lines, draw a box around each one and initialize 
+            # or perpetuate recording
             if lines is not None and len(lines) < 50:
                 # for eachline in lines:
                 # for x1, y1, x2, y2 in eachline:
-                # Bounding box edges multiplied by 2 to account for dimension reduction earlier
+                # Bounding box edges multiplied by 2 to account for dimension 
+                # reduction earlier
                 # drawBoundingHough(R, 2*x1, 2*x2, 2*y1, 2*y2)
                 updateConsecFrames = False
                 consecFrames = 0
@@ -290,7 +294,8 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                 if not kcw.recording:
                     # Get the current free space on the disk in megabytes
                     free_space = shutil.disk_usage(savepath).free * 1e-6
-                    # If we have more than 500MB available, go ahead and start the recording, else stop program
+                    # If we have more than 500MB available, go ahead and 
+                    # start the recording, else stop program
                     if free_space > 500:
                         # print("New event found at time: {}".format(date_str))
                         p = "{}/{}.avi".format(
@@ -350,7 +355,6 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
             # Occasionally print out the current framerate
             if not framenum % 5:
                 shared.FRAMERATE = 1 / (endframetime - startframetime)
-                # print("Operating at {} frames per second".format(1/(endframetime-startframetime)))
 
             # Check time
             if shared.STARTTIME <= time.localtime().tm_hour < shared.ENDTIME:
