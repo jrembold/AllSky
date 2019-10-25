@@ -33,6 +33,8 @@ motionprocess to read and write to.
 RUNNING = False
 ANALYZE_ON = False
 SAVELOC = '{loc}'
+LATITUDE = {lat}
+LONGITUDE = {long}
 STARTTIME = {stime}
 ENDTIME = {etime}
 BRIGHT_THRESH = {b_thresh}
@@ -80,7 +82,9 @@ def writeConfig():
                 'mlin': shared.DETECT.MINLINE,
                 'lskip': shared.DETECT.LINESKIP,
                 'temp': shared.TEMP,
-                'humid': shared.HUMID
+                'humid': shared.HUMID,
+                'long': shared.LONGITUDE,
+                'lat': shared.LATITUDE,
                 }
         f.write(template.format(**content))
 

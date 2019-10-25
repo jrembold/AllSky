@@ -6,6 +6,8 @@ motionprocess to read and write to.
 RUNNING = False
 ANALYZE_ON = False
 SAVELOC = '/home/jedediah/Videos/AllSky/Test'
+LATITUDE= 44.9372
+LONGITUDE=-123.0322
 STARTTIME = 5
 ENDTIME = 20
 BRIGHT_THRESH = 30
