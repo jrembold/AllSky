@@ -143,6 +143,16 @@ def write_to_table(pos: "(x,y)"):
     with open("Logs/Obs_Table.csv", "a") as f:
         f.write("{code},{local},{utc},{ptx},{pty}\n".format(**params))
 
+def finish_session(sessionid):
+    start_time = dbf.get_entry(sessionid, 'start_time_utc')
+    end_time = dt.utcnow()
+    diff = (end_time - start_time).total_seconds()
+    dbf.update_session(sessionid, {
+        "end_time_utc": end_time,
+        "end_time_local": dt.now(),
+        "elapsed_time": diff,
+        })
+
 
 def analyze(buffsize, savepath, headless, vpath=None, delay=1):
     """
@@ -214,11 +224,14 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                     sessionid,
                     {
                         "start_time_utc": dt.utcnow(),
+                        "start_time_local": dt.now(),
                         "ht_length": shared.DETECT.LENGTH,
                         "ht_thresh": shared.DETECT.THRESHOLD,
                         "ht_minline": shared.DETECT.MINLINE,
                         "ht_lineskip": shared.DETECT.LINESKIP,
-                        "bright_thresh": shared.BRIGHT_THRESH
+                        "bright_thresh": shared.BRIGHT_THRESH,
+                        "latitude": shared.LATITUDE,
+                        "longitude": shared.LONGITUDE,
                     },
                 )
 
@@ -330,7 +343,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                         )
                         disk_full = True
                         shared.ANALYZE_ON = False
-                        dbf.update_session(sessionid, {"end_time_utc": dt.utcnow()})
+                        finish_session(sessionid)
 
             # Create output image with grayscale image saved as blue color
             # output = cv2.merge([B, G, R])
@@ -377,7 +390,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
             # Check time
             if shared.STARTTIME <= time.localtime().tm_hour < shared.ENDTIME:
                 shared.ANALYZE_ON = False
-                dbf.update_session(sessionid, {"end_time_utc": dt.utcnow()})
+                finish_session(sessionid)
                 d6log.info("Day has come. Analysis going to sleep.")
 
             if not shared.RUNNING:
@@ -392,7 +405,7 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
         if not shared.RUNNING:
             shared.ANALYZE_ON = False
             d6log.info("Analysis has been stopped manually.")
-            dbf.update_session(sessionid, {"end_time_utc": dt.utcnow()})
+            finish_session(sessionid)
             break
 
         if disk_full:
