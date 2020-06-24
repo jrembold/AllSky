@@ -47,8 +47,11 @@ d6log.setLevel(logging.DEBUG)
 d6log.addHandler(fhandler)
 
 
-def next_id(prev_id: string) -> str:
-    old = base36decode(prev_id)
+def next_id(prev_id: string = None) -> str:
+    if prev_id == None:
+        old = 0
+    else:
+        old = base36decode(prev_id)
     return base36encode(old + 1)
 
 
@@ -217,7 +220,10 @@ def analyze(buffsize, savepath, headless, vpath=None, delay=1):
                 shared.ANALYZE_ON = True
                 d6log.info("A new night has arrived! Frame analysis beginning!")
                 lastid = dbf.get_last_session_id()
-                newid = next_id(lastid[1:])
+                if lastid is not None:
+                    newid = next_id(lastid[1:])
+                else:
+                    newid = next_id(lastid)
                 sessionid = "s" + newid
                 dbf.add_session(sessionid)
                 dbf.update_session(

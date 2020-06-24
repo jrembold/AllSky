@@ -24,8 +24,12 @@ def get_last_session_id():
     with lite.connect("Logs/Observations.db") as db:
         cur = db.cursor()
         cur.execute("SELECT id FROM sessions ORDER BY id DESC LIMIT 1;")
-        id_ = cur.fetchall()[0][0]
-    return id_
+        id_ = cur.fetchall()
+        if len(id_)>0:
+            output = id_[0][0]
+        else:
+            output = None
+    return output
 
 
 def get_entry(id_: str, column: str):
